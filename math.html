@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三角形共邊互動分析系統</title>
+    <title>三角形共邊 - 自然語言輸入版</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", sans-serif;
@@ -21,56 +21,80 @@
             margin-bottom: 20px;
         }
         h1, h2 { text-align: center; color: #2c3e50;}
-        .input-area {
+        
+        .input-group {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 15px;
+            align-items: stretch;
             flex-wrap: wrap;
         }
-        .input-area input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            min-width: 150px;
+        .batch-area {
+            flex: 2;
+            min-width: 300px;
         }
-        .input-area button {
-            padding: 8px 15px;
+        .batch-area textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .action-area {
+            flex: 1;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .action-area button {
+            width: 100%;
+            padding: 12px;
             border: none;
-            border-radius: 4px;
-            background: #3498db;
+            border-radius: 6px;
+            background: #6c5ce7;
             color: white;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
         }
-        .input-area button:hover { background: #2980b9; }
+        .action-area button:hover { background: #5a4bd1; }
+        .btn-analyze { background: #27ae60 !important; }
+        .btn-analyze:hover { background: #219a52 !important; }
         
         .triangle-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         .tri-item {
             background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 10px 15px;
+            border-radius: 6px;
             border: 1px solid #dee2e6;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .tri-item button {
             background: #e74c3c;
             color: white;
             border: none;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
-            font-size: 12px;
-            line-height: 20px;
+            font-size: 14px;
+            line-height: 24px;
             text-align: center;
         }
+        .color-tag { font-weight: bold; color: #555; font-size: 0.9em;}
 
         .stats-box {
             background: #f8f9fa;
@@ -78,9 +102,9 @@
             border-radius: 8px;
             border: 1px solid #ced4da;
         }
-        .stat-row { padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .stat-row { padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 15px;}
         .stat-row:last-child { border-bottom: none; }
-        .badge-0 { color: #6c757d; font-weight: bold; }
+        .badge-0 { color: #718096; font-weight: bold; }
         .badge-1 { color: #d69e2e; font-weight: bold; }
         .badge-2 { color: #e53e3e; font-weight: bold; }
         
@@ -88,26 +112,28 @@
             margin-top: 15px;
             font-weight: bold;
             text-align: center;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
         }
         .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        
-        .color-tag { font-weight: bold; color: #555; }
     </style>
 </head>
 <body>
 
     <div class="panel">
-        <h1>🔺 互動式三角形共邊分析</h1>
-        <p style="text-align: center; color: #666;">請在下方輸入三角形名稱與三邊中文顏色，用中文逗號 `、` 分隔。</p>
+        <h1>📝 自然語言共邊分析</h1>
+        <p style="text-align: center; color: #666;">直接貼上 Word 的文字格式，系統會自動辨識 (支援一次貼多行)。</p>
         
-        <div class="input-area">
-            <input type="text" id="inputName" placeholder="名稱 (如: 粉色)" style="flex: 0.5;">
-            <input type="text" id="inputColors" placeholder="三邊顏色 (如: 藍色、粉色、棕色)">
-            <button onclick="addTriangle()">➕ 加入分析</button>
-            <button onclick="analyzeAll()" style="background: #27ae60;">▶ 開始計算</button>
+        <div class="input-group">
+            <div class="batch-area">
+                <textarea id="batchInput" placeholder="在這裡貼上你的文字，例如：&#10;棕色三角形三邊顏色:粉色、綠色、紫色&#10;綠色三角形三邊顏色:粉色、綠色、黑色"></textarea>
+            </div>
+            <div class="action-area">
+                <button onclick="parseAndAdd()">🤖 解析並加入</button>
+                <button onclick="analyzeAll()" class="btn-analyze">▶ 開始計算</button>
+            </div>
         </div>
 
         <div id="triangleContainer" class="triangle-list"></div>
@@ -120,53 +146,73 @@
     </div>
 
     <script>
-        // 顏色對照表
+        // 顏色對照表 (棕色=1, 綠色=2...)
         const colorMap = { '棕色':1, '綠色':2, '藍色':3, '黑色':4, '紫色':5, '粉色':6, '紅色':7 };
         let triangles = [];
 
-        function addTriangle() {
-            const nameInput = document.getElementById('inputName').value.trim();
-            const colorsInput = document.getElementById('inputColors').value.trim();
-
-            if (!nameInput || !colorsInput) {
-                alert("請務必填寫名稱與三邊顏色！");
+        function parseAndAdd() {
+            const text = document.getElementById('batchInput').value.trim();
+            if (!text) {
+                alert("請先貼上文字內容！");
                 return;
             }
 
-            // 解析顏色 (依照 `、` 或 `,` 分割)
-            const colorList = colorsInput.split(/[、,]/).map(s => s.trim());
-            if (colorList.length !== 3) {
-                alert("請輸入剛好 3 種顏色 (例如：藍色、粉色、棕色)");
-                return;
-            }
+            // 依換行分割成多行
+            const lines = text.split(/\r?\n/);
+            let addedCount = 0;
 
-            // 檢查顏色是否存在於對照表
-            const numList = colorList.map(c => colorMap[c]);
-            if (numList.includes(undefined)) {
-                alert("包含未定義的顏色名稱！目前僅支援：棕色、綠色、藍色、黑色、紫色、粉色、紅色");
-                return;
-            }
+            lines.forEach(line => {
+                // 正規表達式解析：抓取「三角形」前面的字當名字，抓取冒號後面的顏色
+                // 格式範例: 棕色三角形三邊顏色:粉色、綠色、紫色
+                // 1. 捕獲名稱: ^(.+?)三角形
+                // 2. 捕獲顏色: :(.+)
+                const match = line.match(/^(.+?)三角形.*?[:：]\s*(.+)$/);
+                
+                if (match) {
+                    const name = match[1].trim();
+                    // 把全形頓號、半形逗號都當作分隔符
+                    const colorStr = match[2].trim();
+                    const colorList = colorStr.split(/[、,]/).map(s => s.trim());
+                    
+                    if (colorList.length === 3) {
+                        // 轉換成數字
+                        const numList = colorList.map(c => colorMap[c]);
+                        if (!numList.includes(undefined)) {
+                            // 避免重複加入 (如果名稱相同且數字相同，視為重複)
+                            const isDuplicate = triangles.some(t => t.name === name && JSON.stringify(t.numbers) === JSON.stringify(numList));
+                            if (!isDuplicate) {
+                                triangles.push({ name: name, colors: colorList, numbers: numList });
+                                addedCount++;
+                            }
+                        }
+                    }
+                }
+            });
 
-            triangles.push({ name: nameInput, colors: colorList, numbers: numList });
-            renderList();
-            
-            // 清空輸入框
-            document.getElementById('inputName').value = '';
-            document.getElementById('inputColors').value = '';
+            if (addedCount > 0) {
+                renderList();
+                document.getElementById('batchInput').value = ''; // 清空輸入框
+                alert(`成功解析並加入了 ${addedCount} 個三角形！`);
+            } else {
+                alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
+            }
         }
 
         function removeTriangle(index) {
             triangles.splice(index, 1);
             renderList();
-            // 隱藏舊結果
             document.getElementById('resultPanel').style.display = 'none';
         }
 
         function renderList() {
             const container = document.getElementById('triangleContainer');
+            if (triangles.length === 0) {
+                container.innerHTML = '<p style="color:#999; text-align:center;">目前沒有三角形數據，請在上方輸入並加入。</p>';
+                return;
+            }
             container.innerHTML = triangles.map((t, i) => `
                 <div class="tri-item">
-                    <span><b>${t.name}三角形</b> (${t.colors.join('、')}) = <span class="color-tag">${t.numbers.join('')}</span></span>
+                    <span><b>${t.name}三角形</b> <span class="color-tag">(${t.numbers.join('')})</span></span>
                     <button onclick="removeTriangle(${i})">✕</button>
                 </div>
             `).join('');
@@ -185,14 +231,12 @@
                 for (let j = i + 1; j < n; j++) {
                     const t1 = triangles[i];
                     const t2 = triangles[j];
-                    // 計算交集數量
                     const common = t1.numbers.filter(num => t2.numbers.includes(num));
                     const pairText = `${t1.name}和${t2.name}`;
                     
                     if (common.length === 0) list0.push(pairText);
                     else if (common.length === 1) list1.push(pairText);
                     else if (common.length === 2) list2.push(pairText);
-                    // 忽略 3 邊重合 (因為通常幾何不會完全重疊)
                 }
             }
 
@@ -200,7 +244,6 @@
             const totalPairs = n * (n - 1) / 2;
             const calcSum = list0.length + list1.length + list2.length;
 
-            // 顯示結果
             document.getElementById('resultPanel').style.display = 'block';
             document.getElementById('statsContent').innerHTML = `
                 <div class="stat-row"><span class="badge-0">🟢 共用 0 邊 (${list0.length})</span>：${list0.join('、') || '無'}</div>
@@ -211,10 +254,10 @@
             const verifyEl = document.getElementById('verifyResult');
             if (calcSum === totalPairs) {
                 verifyEl.className = 'verify-msg pass';
-                verifyEl.innerHTML = `✅ 驗證成功！總組合數 ${totalPairs} 組完全吻合 (0邊:${list0.length} + 1邊:${list1.length} + 2邊:${list2.length} = ${calcSum})。`;
+                verifyEl.innerHTML = `✅ 驗證成功！${n}個三角形，總組合數 ${totalPairs} 組完全吻合。`;
             } else {
                 verifyEl.className = 'verify-msg fail';
-                verifyEl.innerHTML = `❌ 驗證失敗！數學邏輯有誤 (總組合數應為 ${totalPairs}，目前加總為 ${calcSum})。`;
+                verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
             }
         }
     </script>

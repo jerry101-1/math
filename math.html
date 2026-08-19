@@ -123,15 +123,15 @@
 <body>
 
     <div class="panel">
-        <h1>📝共邊分析</h1>       
+        <h1>共邊分析</h1>       
         
         <div class="input-group">
             <div class="batch-area">
                 <textarea id="batchInput" placeholder="在這裡貼上你的文字，例如：&#10;棕色三角形三邊顏色:粉色、綠色、紫色&#10;綠色三角形三邊顏色:粉色、綠色、黑色"></textarea>
             </div>
             <div class="action-area">
-                <button onclick="parseAndAdd()">🤖 解析並加入</button>
-                <button onclick="analyzeAll()" class="btn-analyze">▶ 開始計算</button>
+                <button onclick="parseAndAdd()">解析加入</button>
+                <button onclick="analyzeAll()" class="btn-analyze">開始計算</button>
             </div>
         </div>
 
@@ -139,7 +139,7 @@
     </div>
 
     <div class="panel" id="resultPanel" style="display: none;">
-        <h2>📊 分析結果</h2>
+        <h2>結果</h2>
         <div id="statsContent" class="stats-box"></div>
         <div id="verifyResult" class="verify-msg"></div>
     </div>
@@ -191,7 +191,7 @@
             if (addedCount > 0) {
                 renderList();
                 document.getElementById('batchInput').value = ''; // 清空輸入框
-                alert(`成功解析並加入了 ${addedCount} 個三角形！`);
+                alert(`成功加入了 ${addedCount} 個三角形！`);
             } else {
                 alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
             }
@@ -248,16 +248,7 @@
                 <div class="stat-row"><span class="badge-0">🟢 共用 0 邊 (${list0.length})</span>：${list0.join('、') || '無'}</div>
                 <div class="stat-row"><span class="badge-1">🟡 共用 1 邊 (${list1.length})</span>：${list1.join('、') || '無'}</div>
                 <div class="stat-row"><span class="badge-2">🔴 共用 2 邊 (${list2.length})</span>：${list2.join('、') || '無'}</div>
-            `;
-
-            const verifyEl = document.getElementById('verifyResult');
-            if (calcSum === totalPairs) {
-                verifyEl.className = 'verify-msg pass';
-                verifyEl.innerHTML = `✅ 驗證成功！${n}個三角形，總組合數 ${totalPairs} 組完全吻合。`;
-            } else {
-                verifyEl.className = 'verify-msg fail';
-                verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
-            }
+            `;            
         }
     </script>
 </body>

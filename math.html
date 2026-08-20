@@ -210,9 +210,13 @@
             // 4. 輸出統計結果 (已改為『線』，並加上縮排)
             resultText += `共用0線三角形組合數量:${list0.length}\n`;
             if(list0.length > 0) resultText += `    ${list0.join('、')}\n`;
+
+            resultText += "\n";
             
             resultText += `共用1線三角形組合數量:${list1.length}\n`;
             if(list1.length > 0) resultText += `    ${list1.join('、')}\n`;
+
+            resultTest += "\n";
             
             resultText += `共用2線三角形組合數量:${list2.length}\n`;
             if(list2.length > 0) resultText += `    ${list2.join('、')}\n`;

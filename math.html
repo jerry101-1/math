@@ -3,186 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三角形共邊</title>
+    <title>三角形分析</title>
     <style>
-        body {
-            font-family: "Microsoft JhengHei", sans-serif;
-            background-color: #f4f7f6;
-            padding: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-            color: #333;
-        }
-        .panel {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        h1, h2 { text-align: center; color: #2c3e50;}
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #f4f7f6; padding: 20px; max-width: 900px; margin: 0 auto; color: #333; }
+        .panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1, h2 { text-align: center; color: #2c3e50; }
+        .input-group { display: flex; gap: 15px; flex-wrap: wrap; align-items: stretch; }
+        .batch-area { flex: 2; min-width: 300px; }
+        .batch-area textarea { width: 100%; height: 120px; padding: 10px; border: 2px solid #ced4da; border-radius: 6px; font-size: 16px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+        .action-area { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 10px; justify-content: flex-end; }
+        .action-area button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-parse { background: #6c5ce7; color: white; }
+        .btn-analyze { background: #27ae60; color: white; }
+        .btn-copy { background: #3498db; color: white; }
         
-        .input-group {
-            display: flex;
-            gap: 15px;
-            align-items: stretch;
-            flex-wrap: wrap;
-        }
-        .batch-area {
-            flex: 2;
-            min-width: 300px;
-        }
-        .batch-area textarea {
-            width: 100%;
-            height: 120px;
-            padding: 10px;
-            border: 2px solid #ced4da;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            box-sizing: border-box;
-        }
-        .action-area {
-            flex: 1;
-            min-width: 120px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        .action-area button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            background: #6c5ce7;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .action-area button:hover { background: #5a4bd1; }
-        .btn-analyze { background: #27ae60 !important; }
-        .btn-analyze:hover { background: #219a52 !important; }
+        .triangle-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 15px; }
+        .tri-item { background: #f8f9fa; padding: 10px 15px; border-radius: 6px; border: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .tri-item button { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
         
-        .triangle-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .tri-item {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .tri-item button {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            font-size: 14px;
-            line-height: 24px;
-            text-align: center;
-        }
-        .color-tag { font-weight: bold; color: #555; font-size: 0.9em;}
-
-        .stats-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-        }
-        .stat-row { padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 15px;}
-        .stat-row:last-child { border-bottom: none; }
-        .badge-0 { color: #718096; font-weight: bold; }
-        .badge-1 { color: #d69e2e; font-weight: bold; }
-        .badge-2 { color: #e53e3e; font-weight: bold; }
-        
-        .verify-msg {
-            margin-top: 15px;
-            font-weight: bold;
-            text-align: center;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 16px;
-        }
+        .stats-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ced4da; white-space: pre-wrap; font-family: inherit; }
+        .verify-msg { margin-top: 15px; font-weight: bold; text-align: center; padding: 12px; border-radius: 6px; }
         .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        #outputText { width: 100%; height: 120px; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; font-family: inherit; box-sizing: border-box;}
     </style>
 </head>
 <body>
-
     <div class="panel">
-        <h1>共邊分析</h1>       
+        <h1>共線分析</h1>
         
         <div class="input-group">
             <div class="batch-area">
-                <textarea id="batchInput" placeholder="在這裡貼上你的文字，例如：&#10;棕色三角形三邊顏色:粉色、綠色、紫色&#10;綠色三角形三邊顏色:粉色、綠色、黑色"></textarea>
+                <textarea id="batchInput" placeholder="貼上你的文字，例如：&#10;棕色三角形三邊顏色:棕色、黑色、藍色"></textarea>
             </div>
             <div class="action-area">
-                <button onclick="parseAndAdd()">解析加入</button>
-                <button onclick="analyzeAll()" class="btn-analyze">開始計算</button>
+                <button onclick="parseAndAdd()" class="btn-parse">🤖 解析並加入</button>
+                <button onclick="analyzeAll()" class="btn-analyze">▶ 開始統計</button>
+                <button onclick="generateFinalText()" class="btn-copy">📝 生成最終文字</button>
             </div>
         </div>
-
         <div id="triangleContainer" class="triangle-list"></div>
     </div>
 
     <div class="panel" id="resultPanel" style="display: none;">
-        <h2>結果</h2>
+        <h2>📊 分析結果與最終列表</h2>
         <div id="statsContent" class="stats-box"></div>
         <div id="verifyResult" class="verify-msg"></div>
+        <button onclick="copyText()" style="margin-top:10px; padding:8px 15px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">📋 複製最終文字</button>
     </div>
 
     <script>
-        // 顏色對照表 (棕色=1, 綠色=2...)
-        const colorMap = { '棕色':1, '綠色':2, '藍色':3, '黑色':4, '紫色':5, '粉色':6, '紅色':1 };
+        // 顏色對照表
+        const colorMap = { '棕色':1, '綠色':2, '藍色':3, '黑色':4, '紫色':5, '粉色':6, '紅色':7 };
         let triangles = [];
 
         function parseAndAdd() {
             const text = document.getElementById('batchInput').value.trim();
-            if (!text) {
-                alert("請先貼上文字內容！");
-                return;
-            }
+            if (!text) { alert("請先貼上文字內容！"); return; }
 
-            // 依換行分割成多行
             const lines = text.split(/\r?\n/);
             let addedCount = 0;
 
             lines.forEach(line => {
-                // 正規表達式解析：抓取「三角形」前面的字當名字，抓取冒號後面的顏色
-                // 格式範例: 棕色三角形三邊顏色:粉色、綠色、紫色
-                // 1. 捕獲名稱: ^(.+?)三角形
-                // 2. 捕獲顏色: :(.+)
                 const match = line.match(/^(.+?)三角形.*?[:：]\s*(.+)$/);
-                
                 if (match) {
                     const name = match[1].trim();
-                    // 把全形頓號、半形逗號都當作分隔符
-                    const colorStr = match[2].trim();
-                    const colorList = colorStr.split(/[、,]/).map(s => s.trim());
+                    let colorStr = match[2].trim();
+                    // 處理全形頓號與逗號
+                    let colorList = colorStr.split(/[、,]/).map(s => s.trim());
                     
                     if (colorList.length === 3) {
-                        // 轉換成數字
-                        const numList = colorList.map(c => colorMap[c]);
-                        if (!numList.includes(undefined)) {
-                            // 避免重複加入 (如果名稱相同且數字相同，視為重複)
-                            const isDuplicate = triangles.some(t => t.name === name && JSON.stringify(t.numbers) === JSON.stringify(numList));
-                            if (!isDuplicate) {
-                                triangles.push({ name: name, colors: colorList, numbers: numList });
-                                addedCount++;
-                            }
+                        // 1. 轉換成數字
+                        let numList = colorList.map(c => colorMap[c]);
+                        
+                        // 如果遇到未定義的顏色，跳過
+                        if (numList.includes(undefined)) {
+                            console.warn(`略過 ${name}，因為包含未定義顏色。`);
+                            return;
+                        }
+
+                        // --- 核心修改：創建一個 {數字, 顏色} 的物件陣列 ---
+                        let colorData = colorList.map((c, index) => {
+                            return { num: numList[index], color: c };
+                        });
+
+                        // 2. 依照 數字 (num) 由小排到大
+                        colorData.sort((a, b) => a.num - b.num);
+
+                        // 3. 取出排序後的數字與顏色
+                        let sortedNumbers = colorData.map(item => item.num);
+                        let sortedColors = colorData.map(item => item.color);
+
+                        // 避免重複加入
+                        const isDuplicate = triangles.some(t => t.name === name && JSON.stringify(t.numbers) === JSON.stringify(sortedNumbers));
+                        if (!isDuplicate) {
+                            triangles.push({ 
+                                name: name, 
+                                colors: sortedColors, // 這裡存排序後的顏色
+                                numbers: sortedNumbers // 這裡存排序後的數字
+                            });
+                            addedCount++;
                         }
                     }
                 }
@@ -190,8 +110,8 @@
 
             if (addedCount > 0) {
                 renderList();
-                document.getElementById('batchInput').value = ''; // 清空輸入框
-                alert(`成功加入了 ${addedCount} 個三角形！`);
+                document.getElementById('batchInput').value = '';
+                alert(`成功解析並加入了 ${addedCount} 個三角形（已自動排序）！`);
             } else {
                 alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
             }
@@ -211,17 +131,14 @@
             }
             container.innerHTML = triangles.map((t, i) => `
                 <div class="tri-item">
-                    <span><b>${t.name}三角形</b> <span class="color-tag">(${t.numbers.join('')})</span></span>
+                    <span><b>${t.name}三角形</b> (${t.colors.join('、')}) = <span style="font-weight:bold;">${t.numbers.join('')}</span></span>
                     <button onclick="removeTriangle(${i})">✕</button>
                 </div>
             `).join('');
         }
 
         function analyzeAll() {
-            if (triangles.length < 2) {
-                alert("至少需要 2 個三角形才能開始分析！");
-                return;
-            }
+            if (triangles.length < 2) { alert("至少需要 2 個三角形才能開始分析！"); return; }
 
             const n = triangles.length;
             let list0 = [], list1 = [], list2 = [];
@@ -239,16 +156,82 @@
                 }
             }
 
-            // 握手驗證
             const totalPairs = n * (n - 1) / 2;
             const calcSum = list0.length + list1.length + list2.length;
 
             document.getElementById('resultPanel').style.display = 'block';
             document.getElementById('statsContent').innerHTML = `
-                <div class="stat-row"><span class="badge-0">🟢 共用 0 邊 (${list0.length})</span>：${list0.join('、') || '無'}</div>
-                <div class="stat-row"><span class="badge-1">🟡 共用 1 邊 (${list1.length})</span>：${list1.join('、') || '無'}</div>
-                <div class="stat-row"><span class="badge-2">🔴 共用 2 邊 (${list2.length})</span>：${list2.join('、') || '無'}</div>
-            `;            
+                <div class="stat-row"><span style="font-weight:bold; color:#718096;">🟢 共用 0 邊 (${list0.length})</span>：${list0.join('、') || '無'}</div>
+                <div class="stat-row"><span style="font-weight:bold; color:#d69e2e;">🟡 共用 1 邊 (${list1.length})</span>：${list1.join('、') || '無'}</div>
+                <div class="stat-row"><span style="font-weight:bold; color:#e53e3e;">🔴 共用 2 邊 (${list2.length})</span>：${list2.join('、') || '無'}</div>
+            `;
+
+            const verifyEl = document.getElementById('verifyResult');
+            if (calcSum === totalPairs) {
+                verifyEl.className = 'verify-msg pass';
+                verifyEl.innerHTML = `✅ 驗證成功！總組合數 ${totalPairs} 組完全吻合。`;
+            } else {
+                verifyEl.className = 'verify-msg fail';
+                verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
+            }
+        }
+
+        // --- 修改後的生成最終文字函式 (加入縮排與總數) ---
+        function generateFinalText() {
+            if (triangles.length === 0) { alert("沒有三角形資料可以輸出！"); return; }
+
+            let resultText = "";
+            const n = triangles.length;
+
+            // 1. 輸出三角形總數
+            resultText += `三角形數量:${n}\n`;
+            
+            // 2. 輸出排序後的三角形列表 (加上縮排)
+            triangles.forEach(t => {
+                resultText += `    ${t.name}三角形三邊顏色:${t.colors.join('、')}(${t.numbers.join('')})\n`;
+            });
+            
+            resultText += "\n"; // 空一行
+            
+            // 3. 統計邏輯
+            let list0 = [], list1 = [], list2 = [];
+            for (let i = 0; i < n; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    const t1 = triangles[i];
+                    const t2 = triangles[j];
+                    const common = t1.numbers.filter(num => t2.numbers.includes(num));
+                    const pairText = `${t1.name}和${t2.name}`;
+                    if (common.length === 0) list0.push(pairText);
+                    else if (common.length === 1) list1.push(pairText);
+                    else if (common.length === 2) list2.push(pairText);
+                }
+            }
+
+            // 4. 輸出統計結果 (已改為『線』，並加上縮排)
+            resultText += `共用0線三角形組合數量:${list0.length}\n`;
+            if(list0.length > 0) resultText += `    ${list0.join('、')}\n`;
+            
+            resultText += `共用1線三角形組合數量:${list1.length}\n`;
+            if(list1.length > 0) resultText += `    ${list1.join('、')}\n`;
+            
+            resultText += `共用2線三角形組合數量:${list2.length}\n`;
+            if(list2.length > 0) resultText += `    ${list2.join('、')}\n`;
+
+            // 顯示在結果區下方
+            let outputArea = document.getElementById('statsContent');
+            // 為了避免點擊兩次產生兩個文字框，先清除舊的
+            let oldTextArea = document.getElementById('outputText');
+            if(oldTextArea) oldTextArea.remove();
+
+            outputArea.innerHTML += `<textarea id="outputText" readonly style="width:100%; height:180px; margin-top:10px; padding:10px; border:1px solid #ccc; border-radius:6px; resize:vertical; font-family:inherit; box-sizing:border-box;">${resultText}</textarea>`;
+        }
+
+        function copyText() {
+            let copyArea = document.getElementById('outputText');
+            if(!copyArea) { alert("請先點擊『生成最終文字』按鈕！"); return; }
+            copyArea.select();
+            document.execCommand('copy');
+            alert("已複製到剪貼簿！可以直接貼上 Word。");
         }
     </script>
 </body>

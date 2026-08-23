@@ -199,7 +199,7 @@
             
             // 2. 輸出排序後的三角形列表 (加上縮排)
             triangles.forEach(t => {
-                resultText += `    ${t.name}三角形三邊顏色:${t.colors.join('、')}(${t.numbers.join('')})\n`;
+                resultText += `${t.name}三角形三邊顏色:${t.colors.join('、')}(${t.numbers.join('')})\n`;               
             });
             
             resultText += "\n"; // 空一行
@@ -220,17 +220,17 @@
 
             // 4. 輸出統計結果 (已改為『線』，並加上縮排)
             resultText += `共用0線三角形組合數量:${list0.length}\n`;
-            if(list0.length > 0) resultText += `    ${list0.join('、')}\n`;
+            if(list0.length > 0) resultText += `(${list0.join('、')})\n`;
 
             resultText += "\n";
             
             resultText += `共用1線三角形組合數量:${list1.length}\n`;
-            if(list1.length > 0) resultText += `    ${list1.join('、')}\n`;
+            if(list1.length > 0) resultText += `(${list1.join('、')})\n`;
 
             resultText += "\n";
             
             resultText += `共用2線三角形組合數量:${list2.length}\n`;
-            if(list2.length > 0) resultText += `    ${list2.join('、')}\n`;
+            if(list2.length > 0) resultText += `(${list2.join('、')})\n`;
 
             // 顯示在結果區下方
             let outputArea = document.getElementById('statsContent');

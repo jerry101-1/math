@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數獨遊戲 · 經典九宮格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: linear-gradient(145deg, #2b3a4a 0%, #1d2a35 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 16px;
+        }
+        .sudoku-container {
+            background: #27343f;
+            padding: 30px 30px 35px;
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 0 2px #4f6579 inset;
+            backdrop-filter: blur(2px);
+            transition: 0.2s;
+        }
+        .board-wrapper {
+            background: #1e2a33;
+            padding: 16px;
+            border-radius: 32px;
+            box-shadow: 0 8px 0 #0f171f;
+        }
+        #sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 3px;
+            background: #1e2a33;
+            width: min(65vw, 65vh, 500px);
+            height: min(65vw, 65vh, 500px);
+            margin: 0 auto;
+        }
+        .cell {
+            background: #f2f7fc;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.4rem, 5vw, 2.2rem);
+            font-weight: 600;
+            color: #1f2e3b;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 2px 0 #b0c4d4;
+            aspect-ratio: 1 / 1;
+            font-family: 'Segoe UI', monospace;
+        }
+        .cell.editable {
+            background: #ffffff;
+            color: #0b1a26;
+            font-weight: 500;
+        }
+        .cell.editable:active {
+            transform: scale(0.92);
+        }
+        .cell.given {
+            background: #dce5ed;
+            color: #15222e;
+            font-weight: 700;
+        }
+        .cell.highlight {
+            background: #d3e6ff;
+            box-shadow: 0 0 0 2px #3f8cff;
+        }
+        .cell.conflict {
+            background: #ffd9d9 !important;
+            color: #b00020 !important;
+            box-shadow: 0 0 0 2px #ff3b3b;
+        }
+        .cell.selected {
+            background: #b5d0ff;
+            box-shadow: 0 0 0 3px #1f6eff;
+            transform: scale(0.96);
+        }
+        /* 粗邊框區分九宮格 */
+        .cell:nth-child(3n) {
+            margin-right: 2px;
+        }
+        .cell:nth-child(9n) {
+            margin-right: 0;
+        }
+        .cell:nth-child(n+19):nth-child(-n+27) {
+            margin-bottom: 2px;
+        }
+        .cell:nth-child(n+46):nth-child(-n+54) {
+            margin-bottom: 2px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin-top: 28px;
+            padding: 6px 10px;
+        }
+        .btn {
+            background: #eef3f8;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 80px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1d2d3b;
+            box-shadow: 0 6px 0 #9aaebf, 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: 0.08s linear;
+            letter-spacing: 0.4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 1 auto;
+        }
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #8a9eaf;
+        }
+        .btn.reset {
+            background: #f5e6d3;
+            color: #482e1b;
+        }
+        .btn.hint {
+            background: #d5eaf5;
+            color: #004070;
+        }
+        .btn.newgame {
+            background: #c7e6d0;
+            color: #004d2b;
+        }
+        .btn.check {
+            background: #f5d7d7;
+            color: #7a2e2e;
+        }
+        .status {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #dbe8f2;
+            background: #1b2732;
+            padding: 12px 18px;
+            border-radius: 60px;
+            box-shadow: inset 0 3px 6px #0f171f;
+            min-height: 3.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .status span {
+            background: #2c3d4b;
+            padding: 4px 16px;
+            border-radius: 40px;
+            color: #c6dcee;
+        }
+        .number-pad {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 8px 0 4px;
+        }
+        .num-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 30px;
+            background: #eef3f8;
+            border: none;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #15222e;
+            box-shadow: 0 4px 0 #9aaebf;
+            cursor: pointer;
+            transition: 0.05s linear;
+        }
+        .num-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #8a9eaf;
+        }
+        .num-btn.clear-btn {
+            background: #f5d7d7;
+            color: #7a2e2e;
+            font-size: 1.2rem;
+        }
+        @media (max-width: 550px) {
+            .sudoku-container { padding: 16px; }
+            .btn { padding: 10px 16px; font-size: 0.95rem; }
+            .num-btn { width: 38px; height: 38px; font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="sudoku-container">
+    <div class="board-wrapper">
+        <div id="sudoku-grid"></div>
+    </div>
+
+    <div class="number-pad">
+        <button class="num-btn" data-num="1">1</button>
+        <button class="num-btn" data-num="2">2</button>
+        <button class="num-btn" data-num="3">3</button>
+        <button class="num-btn" data-num="4">4</button>
+        <button class="num-btn" data-num="5">5</button>
+        <button class="num-btn" data-num="6">6</button>
+        <button class="num-btn" data-num="7">7</button>
+        <button class="num-btn" data-num="8">8</button>
+        <button class="num-btn" data-num="9">9</button>
+        <button class="num-btn clear-btn" data-num="0">✕</button>
+    </div>
+
+    <div class="controls">
+        <button class="btn newgame" id="newGameBtn">✨ 新遊戲</button>
+        <button class="btn hint" id="hintBtn">💡 提示</button>
+        <button class="btn check" id="checkBtn">✔ 檢查</button>
+        <button class="btn reset" id="resetBtn">↺ 重設</button>
+    </div>
+
+    <div class="status" id="statusMessage">
+        <span>🎯 點選空格，數字填入</span>
+    </div>
+</div>
+<script>
+    (function(){
+        // ---------- 核心 ----------
+        let board = [];          // 目前盤面 (9x9)
+        let given = [];          // 是否為初始給定 (不可編輯)
+        let selectedRow = -1, selectedCol = -1;
+
+        // DOM 元素
+        const gridEl = document.getElementById('sudoku-grid');
+        const statusEl = document.getElementById('statusMessage');
+
+        // ---------- 產生有效數獨 (使用簡單 backtracking) ----------
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function isValidPlacement(grid, row, col, num) {
+            for (let i = 0; i < 9; i++) {
+                if (grid[row][i] === num) return false;
+                if (grid[i][col] === num) return false;
+            }
+            const boxRow = Math.floor(row / 3) * 3;
+            const boxCol = Math.floor(col / 3) * 3;
+            for (let r = boxRow; r < boxRow + 3; r++) {
+                for (let c = boxCol; c < boxCol + 3; c++) {
+                    if (grid[r][c] === num) return false;
+                }
+            }
+            return true;
+        }
+
+        function solveSudoku(grid) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (grid[row][col] === 0) {
+                        const nums = shuffleArray([1,2,3,4,5,6,7,8,9]);
+                        for (let num of nums) {
+                            if (isValidPlacement(grid, row, col, num)) {
+                                grid[row][col] = num;
+                                if (solveSudoku(grid)) return true;
+                                grid[row][col] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function generateRandomBoard() {
+            const newBoard = Array(9).fill().map(() => Array(9).fill(0));
+            solveSudoku(newBoard);  // 填滿完整解
+            return newBoard;
+        }
+
+        // 挖空 (難度中等 ~ 35~40 空格)
+        function createPuzzle(fullBoard, blanks = 38) {
+            const puzzle = fullBoard.map(row => [...row]);
+            let positions = [];
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    positions.push([i, j]);
+                }
+            }
+            shuffleArray(positions);
+            let removed = 0;
+            for (let [r, c] of positions) {
+                if (removed >= blanks) break;
+                puzzle[r][c] = 0;
+                removed++;
+            }
+            return puzzle;
+        }
+
+        // ---------- 初始化新遊戲 ----------
+        function newGame() {
+            const full = generateRandomBoard();
+            const puzzle = createPuzzle(full, 40);
+            board = puzzle.map(row => [...row]);
+            // 記錄哪些是 given (原始非零)
+            given = board.map(row => row.map(val => val !== 0));
+            selectedRow = -1; selectedCol = -1;
+            renderBoard();
+            statusEl.innerHTML = `<span>🧩 新數獨 · 試試填入數字</span>`;
+        }
+
+        // ---------- 渲染 ----------
+        function renderBoard() {
+            gridEl.innerHTML = '';
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const val = board[r][c];
+                    if (val !== 0) {
+                        cell.textContent = val;
+                    }
+                    if (given[r][c]) {
+                        cell.classList.add('given');
+                    } else {
+                        cell.classList.add('editable');
+                    }
+                    // 選中高亮
+                    if (selectedRow === r && selectedCol === c) {
+                        cell.classList.add('selected');
+                    }
+                    // 相同數字高亮 (如果選中)
+                    if (selectedRow !== -1 && selectedCol !== -1) {
+                        const selVal = board[selectedRow][selectedCol];
+                        if (selVal !== 0 && board[r][c] === selVal && !(r === selectedRow && c === selectedCol)) {
+                            cell.classList.add('highlight');
+                        }
+                    }
+                    // 檢查衝突 (僅針對 editable)
+                    if (!given[r][c] && val !== 0) {
+                        if (!isValidPlacement(board, r, c, val)) {
+                            cell.classList.add('conflict');
+                        }
+                    }
+                    // 加入點擊事件
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.addEventListener('click', onCellClick);
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        // ---------- 點擊格子 ----------
+        function onCellClick(e) {
+            const row = parseInt(e.currentTarget.dataset.row);
+            const col = parseInt(e.currentTarget.dataset.col);
+            // 如果是 given 則不能選中編輯，但可以選中查看
+            if (given[row][col]) {
+                selectedRow = row;
+                selectedCol = col;
+                renderBoard();
+                statusEl.innerHTML = `<span>🔒 給定數字 (不可修改)</span>`;
+                return;
+            }
+            // editable
+            selectedRow = row;
+            selectedCol = col;
+            renderBoard();
+            const val = board[row][col];
+            statusEl.innerHTML = val !== 0 
+                ? `<span>✏️ 選中 (${row+1}, ${col+1}) · 數字 ${val}</span>` 
+                : `<span>✏️ 選中 (${row+1}, ${col+1}) · 空格</span>`;
+        }
+
+        // ---------- 填數字 (由按鈕觸發) ----------
+        function fillNumber(num) {
+            if (selectedRow === -1 || selectedCol === -1) {
+                statusEl.innerHTML = `<span>⚠️ 請先點選一個空格</span>`;
+                return;
+            }
+            const r = selectedRow, c = selectedCol;
+            if (given[r][c]) {
+                statusEl.innerHTML = `<span>⛔ 這是給定數字，不能修改</span>`;
+                return;
+            }
+            // num = 0 表示清除
+            if (num === 0) {
+                board[r][c] = 0;
+                renderBoard();
+                statusEl.innerHTML = `<span>🗑️ 已清除 (${r+1}, ${c+1})</span>`;
+                return;
+            }
+            // 檢查是否衝突 (即時)
+            board[r][c] = num;
+            if (!isValidPlacement(board, r, c, num)) {
+                // 衝突仍允許填入，但會顯示紅色
+                renderBoard();
+                statusEl.innerHTML = `<span>⚠️ 數字 ${num} 與同行/列/宮衝突</span>`;
+            } else {
+                renderBoard();
+                statusEl.innerHTML = `<span>✅ 填入 ${num} 於 (${r+1}, ${c+1})</span>`;
+            }
+        }
+
+        // ---------- 檢查衝突 (全盤) ----------
+        function checkConflicts() {
+            let conflictCount = 0;
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (!given[r][c] && board[r][c] !== 0) {
+                        if (!isValidPlacement(board, r, c, board[r][c])) {
+                            conflictCount++;
+                        }
+                    }
+                }
+            }
+            if (conflictCount === 0) {
+                // 額外檢查是否全部填滿且無衝突 => 勝利
+                let filled = true;
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] === 0) { filled = false; break; }
+                    }
+                    if (!filled) break;
+                }
+                if (filled) {
+                    statusEl.innerHTML = `<span>🎉 恭喜！你完成了數獨！ 🎉</span>`;
+                } else {
+                    statusEl.innerHTML = `<span>✔ 目前沒有衝突，繼續加油！</span>`;
+                }
+            } else {
+                statusEl.innerHTML = `<span>⚠️ 發現 ${conflictCount} 個衝突數字 (紅色標記)</span>`;
+            }
+            renderBoard(); // 刷新衝突高亮
+        }
+
+        // ---------- 提示：填入一個正確數字 (自動解一格) ----------
+        function giveHint() {
+            // 複製當前盤面，嘗試求解，找到第一個可填的空格
+            const copy = board.map(row => [...row]);
+            // 先檢查是否已完成
+            let complete = true;
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (copy[r][c] === 0) { complete = false; break; }
+                }
+                if (!complete) break;
+            }
+            if (complete) {
+                statusEl.innerHTML = `<span>🎯 所有格子已填滿！</span>`;
+                return;
+            }
+
+            // 執行求解 (修改 copy)
+            function solveForHint(grid) {
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (grid[row][col] === 0) {
+                            for (let num = 1; num <= 9; num++) {
+                                if (isValidPlacement(grid, row, col, num)) {
+                                    grid[row][col] = num;
+                                    if (solveForHint(grid)) return true;
+                                    grid[row][col] = 0;
+                                }
+                            }
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            const hintBoard = board.map(row => [...row]);
+            if (!solveForHint(hintBoard)) {
+                statusEl.innerHTML = `<span>❌ 目前盤面無解，請檢查衝突</span>`;
+                return;
+            }
+
+            // 找到第一個跟 board 不同的格子 (即 hint)
+            let hintRow = -1, hintCol = -1, hintVal = -1;
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] === 0 && hintBoard[r][c] !== 0) {
+                        hintRow = r; hintCol = c; hintVal = hintBoard[r][c];
+                        break;
+                    }
+                }
+                if (hintRow !== -1) break;
+            }
+
+            if (hintRow === -1) {
+                statusEl.innerHTML = `<span>🤔 沒有找到可填入的格子 (可能已完成)</span>`;
+                return;
+            }
+
+            // 填入提示
+            if (given[hintRow][hintCol]) {
+                statusEl.innerHTML = `<span>⚠️ 提示位置為給定數字，異常</span>`;
+                return;
+            }
+            board[hintRow][hintCol] = hintVal;
+            selectedRow = hintRow;
+            selectedCol = hintCol;
+            renderBoard();
+            statusEl.innerHTML = `<span>💡 提示： (${hintRow+1}, ${hintCol+1}) 填入 ${hintVal}</span>`;
+        }
+
+        // ---------- 重設 (回到初始 puzzle) ----------
+        function resetGame() {
+            // 從當前的 board 還原到初始 given 狀態
+            const puzzle = board.map((row, r) => row.map((val, c) => given[r][c] ? val : 0));
+            board = puzzle.map(row => [...row]);
+            selectedRow = -1; selectedCol = -1;
+            renderBoard();
+            statusEl.innerHTML = `<span>↺ 已重設為初始謎題</span>`;
+        }
+
+        // ---------- 事件綁定 ----------
+        function setupControls() {
+            document.querySelectorAll('.num-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const num = parseInt(e.currentTarget.dataset.num, 10);
+                    fillNumber(num);
+                });
+            });
+
+            document.getElementById('newGameBtn').addEventListener('click', newGame);
+            document.getElementById('resetBtn').addEventListener('click', resetGame);
+            document.getElementById('checkBtn').addEventListener('click', checkConflicts);
+            document.getElementById('hintBtn').addEventListener('click', giveHint);
+        }
+
+        // ---------- 啟動 ----------
+        newGame();
+        setupControls();
+    })();
+</script>
+</body>
+</html>

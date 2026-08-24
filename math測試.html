@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六線構圖分類分析工具（含座標）</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            color: #1a1a2e;
+        }
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        h1, h2 { color: #16213e; text-align: center; }
+        h1 { border-bottom: 3px solid #0f3460; padding-bottom: 12px; }
+        .input-group { display: flex; gap: 15px; flex-wrap: wrap; align-items: stretch; }
+        .batch-area { flex: 2; min-width: 300px; }
+        .batch-area textarea { width: 100%; height: 120px; padding: 10px; border: 2px solid #ced4da; border-radius: 6px; font-size: 16px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+        .action-area { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 10px; justify-content: flex-end; }
+        .action-area button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-parse { background: #6c5ce7; color: white; }
+        .btn-analyze { background: #27ae60; color: white; }
+        .btn-copy { background: #3498db; color: white; }
+        
+        .triangle-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 15px; }
+        .tri-item { background: #f8f9fa; padding: 10px 15px; border-radius: 6px; border: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .tri-item button { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; }
+        
+        .stats-box { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ced4da; white-space: pre-wrap; font-family: inherit; }
+        .verify-msg { margin-top: 15px; font-weight: bold; text-align: center; padding: 12px; border-radius: 6px; }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        #outputText { width: 100%; height: 120px; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; font-family: inherit; box-sizing: border-box; }
+
+        .classify-box {
+            background: #e8f0fe;
+            border: 3px solid #0f3460;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .classify-box .label { font-size: 16px; font-weight: 700; color: #0f3460; }
+        .classify-box .result { font-size: 26px; font-weight: 900; color: #c0392b; margin-top: 4px; }
+        .classify-box .detail { font-size: 14px; color: #555; margin-top: 6px; }
+        .badge-tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; margin: 4px 4px 4px 0; }
+        .badge-connected { background: #27ae60; color: white; }
+        .badge-disconnected { background: #e67e22; color: white; }
+        .badge-star { background: #8e44ad; color: white; }
+        .badge-chain { background: #2980b9; color: white; }
+        .badge-dual { background: #d35400; color: white; }
+        .badge-mixed { background: #7f8c8d; color: white; }
+
+        .coord-area {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+        }
+        .coord-area .coord-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .coord-area .coord-row label {
+            font-weight: 600;
+            min-width: 60px;
+        }
+        .coord-area .coord-row input {
+            flex: 1;
+            min-width: 80px;
+            padding: 6px 10px;
+            border: 1.5px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .coord-area .coord-row input:focus {
+            border-color: #0f3460;
+            outline: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #d1d9e6;
+            text-align: center;
+        }
+        th { background: #16213e; color: white; }
+        td { background: white; }
+        .group-box {
+            background: #eef2f7;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin: 6px 0;
+            border-left: 4px solid #0f3460;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+        .btn-sm { padding: 4px 12px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-danger-sm { background: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>📐 六線構圖分類分析工具</h1>
+    <h2 style="font-size:16px;color:#555;margin-top:-8px;">（顏色文字 + 頂點座標）</h2>
+
+    <!-- ====== 第一區：貼上顏色文字 ====== -->
+    <div class="panel">
+        <h3>📥 步驟一：貼上三角形顏色文字</h3>
+        <p style="color:#555;font-size:14px;">格式：「[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]」</p>
+        <div class="input-group">
+            <div class="batch-area">
+                <textarea id="batchInput" placeholder="貼上你的文字，例如：&#10;紅色三角形三邊顏色:紅色、藍色、粉色"></textarea>
+            </div>
+            <div class="action-area">
+                <button onclick="parseAndAdd()" class="btn-parse">📝 解析並加入</button>
+                <button onclick="clearAll()" style="background:#e74c3c;color:white;padding:12px;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;">🗑️ 清空</button>
+            </div>
+        </div>
+        <div id="triangleContainer" class="triangle-list"></div>
+    </div>
+
+    <!-- ====== 第二區：輸入頂點座標 ====== -->
+    <div class="panel" id="coordPanel" style="display:none;">
+        <h3>📍 步驟二：輸入每個三角形的頂點座標</h3>
+        <p style="color:#555;font-size:14px;">請為每個三角形輸入 3 個頂點的 (x, y) 座標</p>
+        <div id="coordContainer"></div>
+        <button onclick="analyze()" class="btn-analyze" style="padding:12px 30px;border:none;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;margin-top:12px;">🔍 開始分析</button>
+    </div>
+
+    <!-- ====== 第三區：分析結果 ====== -->
+    <div class="panel" id="resultPanel" style="display:none;">
+        <h2>📊 分析結果</h2>
+        <div id="statsContent" class="stats-box"></div>
+        <div id="classifyResult" class="classify-box">
+            <div class="label">📌 建議分類</div>
+            <div class="result" id="className"></div>
+            <div class="detail" id="classDetail"></div>
+        </div>
+        <div id="verifyResult" class="verify-msg"></div>
+        <div id="outputArea" style="margin-top:16px;"></div>
+        <button onclick="copyText()" style="margin-top:10px; padding:8px 15px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">📋 複製最終文字</button>
+    </div>
+
+    <div class="footer">⚡ 分類依據：<b>連通性（維度一）</b> ＋ <b>整體輪廓（維度四）</b>（含左右分佈）</div>
+
+    <script>
+        // ================================================================
+        //  colorMap（中文顏色 → 數字）
+        // ================================================================
+        const colorMap = {
+            '紅色': 1, '紅': 1,
+            '綠色': 2, '綠': 2,
+            '藍色': 3, '藍': 3,
+            '黑色': 4, '黑': 4,
+            '紫色': 5, '紫': 5,
+            '粉色': 6, '粉': 6,
+            '棕色': 1, '棕': 1  // 棕色也對應 1（紅色）
+        };
+
+        // ================================================================
+        //  全域變數
+        // ================================================================
+        let triangles = [];  // 每個元素：{ name, colors, numbers, points: [], center: {} }
+
+        // ================================================================
+        //  步驟一：解析顏色文字
+        // ================================================================
+
+        function parseAndAdd() {
+            const text = document.getElementById('batchInput').value.trim();
+            if (!text) { alert("請先貼上文字內容！"); return; }
+
+            const lines = text.split(/\r?\n/);
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                const match = line.match(/^(.+?)三角形.*?[:：]\s*(.+)$/);
+                if (match) {
+                    const name = match[1].trim();
+                    let colorStr = match[2].trim();
+                    let colorList = colorStr.split(/[、,，]/).map(s => s.trim());
+                    
+                    if (colorList.length === 3) {
+                        let numList = colorList.map(c => colorMap[c]);
+                        if (numList.includes(undefined)) {
+                            console.warn(`略過 ${name}，因為包含未定義顏色。`);
+                            return;
+                        }
+
+                        let colorData = colorList.map((c, index) => {
+                            return { num: numList[index], color: c };
+                        });
+                        colorData.sort((a, b) => a.num - b.num);
+                        let sortedNumbers = colorData.map(item => item.num);
+                        let sortedColors = colorData.map(item => item.color);
+
+                        const isDuplicate = triangles.some(t => t.name === name && JSON.stringify(t.numbers) === JSON.stringify(sortedNumbers));
+                        if (!isDuplicate) {
+                            triangles.push({
+                                name: name,
+                                colors: sortedColors,
+                                numbers: sortedNumbers,
+                                points: [],   // 待填入
+                                center: null
+                            });
+                            addedCount++;
+                        }
+                    }
+                }
+            });
+
+            if (addedCount > 0) {
+                renderList();
+                document.getElementById('batchInput').value = '';
+                document.getElementById('coordPanel').style.display = 'block';
+                generateCoordInputs();
+            } else {
+                alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
+            }
+        }
+
+        function renderList() {
+            const container = document.getElementById('triangleContainer');
+            if (triangles.length === 0) {
+                container.innerHTML = '<p style="color:#999; text-align:center;">目前沒有三角形數據，請在上方輸入並加入。</p>';
+                return;
+            }
+            container.innerHTML = triangles.map((t, i) => `
+                <div class="tri-item">
+                    <span><b>${t.name}三角形</b> (${t.colors.join('、')}) = <span style="font-weight:bold;">${t.numbers.join('')}</span></span>
+                    <button onclick="removeTriangle(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeTriangle(index) {
+            triangles.splice(index, 1);
+            renderList();
+            document.getElementById('resultPanel').style.display = 'none';
+            if (triangles.length === 0) {
+                document.getElementById('coordPanel').style.display = 'none';
+            } else {
+                generateCoordInputs();
+            }
+        }
+
+        function clearAll() {
+            triangles = [];
+            renderList();
+            document.getElementById('coordPanel').style.display = 'none';
+            document.getElementById('resultPanel').style.display = 'none';
+            document.getElementById('batchInput').value = '';
+        }
+
+        // ================================================================
+        //  步驟二：生成座標輸入欄位
+        // ================================================================
+
+        function generateCoordInputs() {
+            const container = document.getElementById('coordContainer');
+            let html = '';
+            triangles.forEach((t, i) => {
+                html += `
+                    <div class="coord-row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;padding:8px 12px;background:#f8f9fa;border-radius:6px;border:1px solid #e9ecef;">
+                        <label style="font-weight:700;min-width:60px;color:#0f3460;">${t.name}</label>
+                        <input type="text" class="coord-p1" placeholder="頂點1 x,y" value="" style="flex:1;min-width:80px;padding:6px 10px;border:1.5px solid #ced4da;border-radius:6px;font-size:14px;">
+                        <input type="text" class="coord-p2" placeholder="頂點2 x,y" value="" style="flex:1;min-width:80px;padding:6px 10px;border:1.5px solid #ced4da;border-radius:6px;font-size:14px;">
+                        <input type="text" class="coord-p3" placeholder="頂點3 x,y" value="" style="flex:1;min-width:80px;padding:6px 10px;border:1.5px solid #ced4da;border-radius:6px;font-size:14px;">
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ================================================================
+        //  步驟三：讀取座標並分析
+        // ================================================================
+
+        function readCoords() {
+            const rows = document.querySelectorAll('.coord-row');
+            let allValid = true;
+            rows.forEach((row, i) => {
+                const p1 = row.querySelector('.coord-p1').value.trim();
+                const p2 = row.querySelector('.coord-p2').value.trim();
+                const p3 = row.querySelector('.coord-p3').value.trim();
+                if (!p1 || !p2 || !p3) {
+                    allValid = false;
+                    return;
+                }
+                const parsePoint = (s) => {
+                    const parts = s.split(/[,，\s]+/).map(Number).filter(n => !isNaN(n));
+                    return parts.length >= 2 ? { x: parts[0], y: parts[1] } : null;
+                };
+                const pt1 = parsePoint(p1);
+                const pt2 = parsePoint(p2);
+                const pt3 = parsePoint(p3);
+                if (!pt1 || !pt2 || !pt3) {
+                    allValid = false;
+                    return;
+                }
+                triangles[i].points = [pt1, pt2, pt3];
+                const cx = (pt1.x + pt2.x + pt3.x) / 3;
+                const cy = (pt1.y + pt2.y + pt3.y) / 3;
+                triangles[i].center = { x: cx, y: cy };
+            });
+            return allValid;
+        }
+
+        // ================================================================
+        //  核心分析函數
+        // ================================================================
+
+        function sharedEdges(t1, t2) {
+            return t1.numbers.filter(e => t2.numbers.includes(e)).length;
+        }
+
+        function checkConnectivity(triList) {
+            const n = triList.length;
+            if (n === 0) return { isConnected: true, groups: [] };
+
+            const adj = Array.from({ length: n }, () => []);
+            for (let i = 0; i < n; i++) {
+                for (let j = i+1; j < n; j++) {
+                    if (sharedEdges(triList[i], triList[j]) > 0) {
+                        adj[i].push(j);
+                        adj[j].push(i);
+                    }
+                }
+            }
+
+            const visited = Array(n).fill(false);
+            const groups = [];
+            for (let i = 0; i < n; i++) {
+                if (visited[i]) continue;
+                const queue = [i];
+                visited[i] = true;
+                const group = [];
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+                    group.push(curr);
+                    for (const nb of adj[curr]) {
+                        if (!visited[nb]) {
+                            visited[nb] = true;
+                            queue.push(nb);
+                        }
+                    }
+                }
+                groups.push(group);
+            }
+            return { isConnected: groups.length === 1, groups };
+        }
+
+        function classifyShape(triList, groups) {
+            const n = triList.length;
+            if (n === 0) return { shape: '無數據', detail: '', s0: 0, s1: 0, s2: 0 };
+
+            let s0 = 0, s1 = 0, s2 = 0;
+            for (let i = 0; i < n; i++) {
+                for (let j = i+1; j < n; j++) {
+                    const s = sharedEdges(triList[i], triList[j]);
+                    if (s === 0) s0++;
+                    else if (s === 1) s1++;
+                    else if (s === 2) s2++;
+                }
+            }
+
+            const totalPairs = n * (n-1) / 2;
+            const groupCount = groups.length;
+            let shape = '', detail = '';
+
+            let leftRightInfo = '';
+            if (groupCount === 2) {
+                const g1 = groups[0];
+                const g2 = groups[1];
+                const c1 = triList[g1[0]].center;
+                const c2 = triList[g2[0]].center;
+                if (c1 && c2) {
+                    const dx = c1.x - c2.x;
+                    const dy = c1.y - c2.y;
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        leftRightInfo = (dx < 0) ? '（左群組 vs 右群組）' : '（右群組 vs 左群組）';
+                    } else {
+                        leftRightInfo = (dy < 0) ? '（下群組 vs 上群組）' : '（上群組 vs 下群組）';
+                    }
+                }
+            }
+
+            if (groupCount >= 2) {
+                const sizes = groups.map(g => g.length);
+                if (groupCount === 2) {
+                    shape = '雙群組';
+                    detail = `群組大小：${sizes[0]} 個 ＋ ${sizes[1]} 個三角形 ${leftRightInfo}`;
+                } else {
+                    shape = '多群組';
+                    detail = `共有 ${groupCount} 個獨立群組：${sizes.join('、')}`;
+                }
+            } else if (n === 1) {
+                shape = '單一三角形';
+                detail = '';
+            } else if (n === 2) {
+                shape = '雙三角形';
+                const s = sharedEdges(triList[0], triList[1]);
+                detail = s === 1 ? '共用1條邊相連' : (s === 2 ? '共用2條邊（重疊）' : '分離');
+            } else {
+                const ratio2 = totalPairs > 0 ? s2 / totalPairs : 0;
+                const ratio1 = totalPairs > 0 ? s1 / totalPairs : 0;
+
+                if (n >= 4 && ratio2 > 0.25) {
+                    shape = '星形（環狀結構）';
+                    detail = `共用2線比例 ${(ratio2*100).toFixed(0)}%，形成環狀連接`;
+                } else if (n >= 3 && ratio1 > 0.5) {
+                    shape = '鏈狀結構';
+                    detail = `主要為共用1線連接（${(ratio1*100).toFixed(0)}%），像鍊子串聯`;
+                } else {
+                    shape = '混合型結構';
+                    detail = `共用0線:${s0}組，共用1線:${s1}組，共用2線:${s2}組`;
+                }
+            }
+
+            return { shape, detail, s0, s1, s2 };
+        }
+
+        function getClassification(triList) {
+            const conn = checkConnectivity(triList);
+            const shapeInfo = classifyShape(triList, conn.groups);
+
+            const connLabel = conn.isConnected ? '全連通' : '部分連通';
+            let mainShape = shapeInfo.shape.replace(/[（(].*[）)]/g, '').trim();
+            let finalClass = `${connLabel}${mainShape}`;
+
+            let groupDetail = '';
+            if (!conn.isConnected && conn.groups.length > 0) {
+                const sizes = conn.groups.map(g => g.length);
+                groupDetail = `（${conn.groups.length} 個獨立群組，大小：${sizes.join('、')}）`;
+            }
+
+            return {
+                className: finalClass,
+                detail: `連通性 = ${connLabel} ｜ 整體輪廓 = ${mainShape} ${groupDetail}`,
+                isConnected: conn.isConnected,
+                groups: conn.groups,
+                shapeInfo: shapeInfo
+            };
+        }
+
+        // ================================================================
+        //  分析與顯示
+        // ================================================================
+
+        function analyze() {
+            if (triangles.length < 2) {
+                alert('請至少輸入 2 個三角形！');
+                return;
+            }
+
+            if (!readCoords()) {
+                alert('請完整輸入所有三角形的 3 個頂點座標！\n格式範例：0,0  2,1  1,3');
+                return;
+            }
+
+            const n = triangles.length;
+            let list0 = [], list1 = [], list2 = [];
+            for (let i = 0; i < n; i++) {
+                for (let j = i+1; j < n; j++) {
+                    const common = triangles[i].numbers.filter(e => triangles[j].numbers.includes(e));
+                    const pairText = `${triangles[i].name}和${triangles[j].name}`;
+                    if (common.length === 0) list0.push(pairText);
+                    else if (common.length === 1) list1.push(pairText);
+                    else if (common.length === 2) list2.push(pairText);
+                }
+            }
+
+            const classInfo = getClassification(triangles);
+            const totalPairs = n * (n-1) / 2;
+            const calcSum = list0.length + list1.length + list2.length;
+
+            document.getElementById('resultPanel').style.display = 'block';
+
+            let statsHtml = `
+                <div><span style="font-weight:bold;">📐 三角形總數：</span>${n} 個</div>
+                <div style="margin-top:6px;">
+                    <span style="font-weight:bold;">🔗 連通性：</span>
+                    ${classInfo.isConnected
+                        ? '<span class="badge-tag badge-connected">✅ 全連通</span>'
+                        : `<span class="badge-tag badge-disconnected">⚠️ 部分連通</span>`}
+                    ${!classInfo.isConnected ? `（${classInfo.groups.length} 個獨立群組）` : ''}
+                </div>
+            `;
+
+            if (!classInfo.isConnected && classInfo.groups.length > 0) {
+                for (let g = 0; g < classInfo.groups.length; g++) {
+                    const idxs = classInfo.groups[g];
+                    const triList = idxs.map(i => triangles[i].name).join('、');
+                    statsHtml += `
+                    <div class="group-box">
+                        <strong>📦 群組 ${g+1}：</strong> ${idxs.length} 個三角形（${triList}）
+                    </div>
+                    `;
+                }
+            }
+
+            statsHtml += `
+                <div style="margin-top:8px;">
+                    <span style="font-weight:bold;">📊 共用邊統計：</span>
+                    共用0線：${classInfo.shapeInfo.s0} 組 ｜
+                    共用1線：${classInfo.shapeInfo.s1} 組 ｜
+                    共用2線：${classInfo.shapeInfo.s2} 組
+                </div>
+                <div style="margin-top:8px;">
+                    <span style="font-weight:bold;">🖼️ 整體輪廓：</span>
+                    <span class="badge-tag ${classInfo.shapeInfo.shape.includes('星形') ? 'badge-star' : classInfo.shapeInfo.shape.includes('鏈') ? 'badge-chain' : classInfo.shapeInfo.shape.includes('雙') ? 'badge-dual' : 'badge-mixed'}">${classInfo.shapeInfo.shape}</span>
+                    ${classInfo.shapeInfo.detail ? `（${classInfo.shapeInfo.detail}）` : ''}
+                </div>
+            `;
+
+            document.getElementById('statsContent').innerHTML = statsHtml;
+            document.getElementById('className').textContent = classInfo.className;
+            document.getElementById('classDetail').textContent = classInfo.detail;
+
+            const verifyEl = document.getElementById('verifyResult');
+            if (calcSum === totalPairs) {
+                verifyEl.className = 'verify-msg pass';
+                verifyEl.innerHTML = `✅ 驗證成功！總組合數 ${totalPairs} 組完全吻合。`;
+            } else {
+                verifyEl.className = 'verify-msg fail';
+                verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
+            }
+
+            // 生成最終文字
+            let resultText = `分類:${classInfo.className}\n\n`;
+            resultText += `三角形數量:${n}\n`;
+            triangles.forEach(t => {
+                resultText += `${t.name}三角形三邊顏色:${t.colors.join('、')}(${t.numbers.join('')})\n`;
+            });
+            resultText += `\n共用0線三角形組合數量:${classInfo.shapeInfo.s0}\n`;
+            if (list0.length > 0) resultText += `(${list0.join('、')})\n`;
+            resultText += `\n共用1線三角形組合數量:${classInfo.shapeInfo.s1}\n`;
+            if (list1.length > 0) resultText += `(${list1.join('、')})\n`;
+            resultText += `\n共用2線三角形組合數量:${classInfo.shapeInfo.s2}\n`;
+            if (list2.length > 0) resultText += `(${list2.join('、')})\n`;
+
+            document.getElementById('outputArea').innerHTML = `
+                <h4>📝 可複製文字輸出</h4>
+                <textarea id="outputText" style="width:100%;height:160px;padding:12px;border:1px solid #ccc;border-radius:6px;font-family:inherit;resize:vertical;box-sizing:border-box;" readonly>${resultText}</textarea>
+            `;
+        }
+
+        function copyText() {
+            const area = document.getElementById('outputText');
+            if (!area) { alert('請先執行分析！'); return; }
+            area.select();
+            document.execCommand('copy');
+            alert('✅ 已複製到剪貼簿！');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderList();
+        });
+    </script>
+</body>
+</html>

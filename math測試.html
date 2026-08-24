@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六線構圖分類分析工具（含座標）</title>
+    <title>分類分析</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
@@ -124,19 +124,19 @@
 </head>
 <body>
 
-    <h1>📐 六線構圖分類分析工具</h1>
+    <h1>分類分析</h1>
     <h2 style="font-size:16px;color:#555;margin-top:-8px;">（顏色文字 + 頂點座標）</h2>
 
     <!-- ====== 第一區：貼上顏色文字 ====== -->
     <div class="panel">
-        <h3>📥 步驟一：貼上三角形顏色文字</h3>
+        <h3>步驟一：貼上三角形顏色文字</h3>
         <p style="color:#555;font-size:14px;">格式：「[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]」</p>
         <div class="input-group">
             <div class="batch-area">
                 <textarea id="batchInput" placeholder="貼上你的文字，例如：&#10;紅色三角形三邊顏色:紅色、藍色、粉色"></textarea>
             </div>
             <div class="action-area">
-                <button onclick="parseAndAdd()" class="btn-parse">📝 解析並加入</button>
+                <button onclick="parseAndAdd()" class="btn-parse">解析並加入</button>
                 <button onclick="clearAll()" style="background:#e74c3c;color:white;padding:12px;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;">🗑️ 清空</button>
             </div>
         </div>
@@ -145,7 +145,7 @@
 
     <!-- ====== 第二區：輸入頂點座標 ====== -->
     <div class="panel" id="coordPanel" style="display:none;">
-        <h3>📍 步驟二：輸入每個三角形的頂點座標</h3>
+        <h3>步驟二：輸入每個三角形的頂點座標</h3>
         <p style="color:#555;font-size:14px;">請為每個三角形輸入 3 個頂點的 (x, y) 座標</p>
         <div id="coordContainer"></div>
         <button onclick="analyze()" class="btn-analyze" style="padding:12px 30px;border:none;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;margin-top:12px;">🔍 開始分析</button>
@@ -153,7 +153,7 @@
 
     <!-- ====== 第三區：分析結果 ====== -->
     <div class="panel" id="resultPanel" style="display:none;">
-        <h2>📊 分析結果</h2>
+        <h2>分析結果</h2>
         <div id="statsContent" class="stats-box"></div>
         <div id="classifyResult" class="classify-box">
             <div class="label">📌 建議分類</div>
@@ -164,9 +164,7 @@
         <div id="outputArea" style="margin-top:16px;"></div>
         <button onclick="copyText()" style="margin-top:10px; padding:8px 15px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">📋 複製最終文字</button>
     </div>
-
-    <div class="footer">⚡ 分類依據：<b>連通性（維度一）</b> ＋ <b>整體輪廓（維度四）</b>（含左右分佈）</div>
-
+  
     <script>
         // ================================================================
         //  colorMap（中文顏色 → 數字）
@@ -501,12 +499,12 @@
             document.getElementById('resultPanel').style.display = 'block';
 
             let statsHtml = `
-                <div><span style="font-weight:bold;">📐 三角形總數：</span>${n} 個</div>
+                <div><span style="font-weight:bold;">三角形總數：</span>${n} 個</div>
                 <div style="margin-top:6px;">
-                    <span style="font-weight:bold;">🔗 連通性：</span>
+                    <span style="font-weight:bold;">連通性：</span>
                     ${classInfo.isConnected
-                        ? '<span class="badge-tag badge-connected">✅ 全連通</span>'
-                        : `<span class="badge-tag badge-disconnected">⚠️ 部分連通</span>`}
+                        ? '<span class="badge-tag badge-connected">全連通</span>'
+                        : `<span class="badge-tag badge-disconnected">部分連通</span>`}
                     ${!classInfo.isConnected ? `（${classInfo.groups.length} 個獨立群組）` : ''}
                 </div>
             `;
@@ -517,7 +515,7 @@
                     const triList = idxs.map(i => triangles[i].name).join('、');
                     statsHtml += `
                     <div class="group-box">
-                        <strong>📦 群組 ${g+1}：</strong> ${idxs.length} 個三角形（${triList}）
+                        <strong>群組 ${g+1}：</strong> ${idxs.length} 個三角形（${triList}）
                     </div>
                     `;
                 }
@@ -525,13 +523,13 @@
 
             statsHtml += `
                 <div style="margin-top:8px;">
-                    <span style="font-weight:bold;">📊 共用邊統計：</span>
+                    <span style="font-weight:bold;">共用邊統計：</span>
                     共用0線：${classInfo.shapeInfo.s0} 組 ｜
                     共用1線：${classInfo.shapeInfo.s1} 組 ｜
                     共用2線：${classInfo.shapeInfo.s2} 組
                 </div>
                 <div style="margin-top:8px;">
-                    <span style="font-weight:bold;">🖼️ 整體輪廓：</span>
+                    <span style="font-weight:bold;">整體輪廓：</span>
                     <span class="badge-tag ${classInfo.shapeInfo.shape.includes('星形') ? 'badge-star' : classInfo.shapeInfo.shape.includes('鏈') ? 'badge-chain' : classInfo.shapeInfo.shape.includes('雙') ? 'badge-dual' : 'badge-mixed'}">${classInfo.shapeInfo.shape}</span>
                     ${classInfo.shapeInfo.detail ? `（${classInfo.shapeInfo.detail}）` : ''}
                 </div>

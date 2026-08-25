@@ -156,7 +156,7 @@
         <h2>分析結果</h2>
         <div id="statsContent" class="stats-box"></div>
         <div id="classifyResult" class="classify-box">
-            <div class="label">📌 建議分類</div>
+            <div class="label">建議分類</div>
             <div class="result" id="className"></div>
             <div class="detail" id="classDetail"></div>
         </div>
@@ -176,13 +176,13 @@
             '黑色': 4, '黑': 4,
             '紫色': 5, '紫': 5,
             '粉色': 6, '粉': 6,
-            '棕色': 1, '棕': 1  // 棕色也對應 1（紅色）
+            '棕色': 1, '棕': 1
         };
 
         // ================================================================
         //  全域變數
         // ================================================================
-        let triangles = [];  // 每個元素：{ name, colors, numbers, points: [], center: {} }
+        let triangles = [];
 
         // ================================================================
         //  步驟一：解析顏色文字
@@ -222,7 +222,7 @@
                                 name: name,
                                 colors: sortedColors,
                                 numbers: sortedNumbers,
-                                points: [],   // 待填入
+                                points: [],
                                 center: null
                             });
                             addedCount++;
@@ -342,7 +342,7 @@
 
             const adj = Array.from({ length: n }, () => []);
             for (let i = 0; i < n; i++) {
-                for (let j = i+1; j < n; j++) {
+                for (let j = i + 1; j < n; j++) {
                     if (sharedEdges(triList[i], triList[j]) > 0) {
                         adj[i].push(j);
                         adj[j].push(i);
@@ -378,7 +378,7 @@
 
             let s0 = 0, s1 = 0, s2 = 0;
             for (let i = 0; i < n; i++) {
-                for (let j = i+1; j < n; j++) {
+                for (let j = i + 1; j < n; j++) {
                     const s = sharedEdges(triList[i], triList[j]);
                     if (s === 0) s0++;
                     else if (s === 1) s1++;
@@ -386,7 +386,7 @@
                 }
             }
 
-            const totalPairs = n * (n-1) / 2;
+            const totalPairs = n * (n - 1) / 2;
             const groupCount = groups.length;
             let shape = '', detail = '';
 
@@ -429,10 +429,10 @@
 
                 if (n >= 4 && ratio2 > 0.25) {
                     shape = '星形（環狀結構）';
-                    detail = `共用2線比例 ${(ratio2*100).toFixed(0)}%，形成環狀連接`;
+                    detail = `共用2線比例 ${(ratio2 * 100).toFixed(0)}%，形成環狀連接`;
                 } else if (n >= 3 && ratio1 > 0.5) {
                     shape = '鏈狀結構';
-                    detail = `主要為共用1線連接（${(ratio1*100).toFixed(0)}%），像鍊子串聯`;
+                    detail = `主要為共用1線連接（${(ratio1 * 100).toFixed(0)}%），像鍊子串聯`;
                 } else {
                     shape = '混合型結構';
                     detail = `共用0線:${s0}組，共用1線:${s1}組，共用2線:${s2}組`;
@@ -483,7 +483,7 @@
             const n = triangles.length;
             let list0 = [], list1 = [], list2 = [];
             for (let i = 0; i < n; i++) {
-                for (let j = i+1; j < n; j++) {
+                for (let j = i + 1; j < n; j++) {
                     const common = triangles[i].numbers.filter(e => triangles[j].numbers.includes(e));
                     const pairText = `${triangles[i].name}和${triangles[j].name}`;
                     if (common.length === 0) list0.push(pairText);
@@ -493,7 +493,7 @@
             }
 
             const classInfo = getClassification(triangles);
-            const totalPairs = n * (n-1) / 2;
+            const totalPairs = n * (n - 1) / 2;
             const calcSum = list0.length + list1.length + list2.length;
 
             document.getElementById('resultPanel').style.display = 'block';
@@ -515,7 +515,7 @@
                     const triList = idxs.map(i => triangles[i].name).join('、');
                     statsHtml += `
                     <div class="group-box">
-                        <strong>群組 ${g+1}：</strong> ${idxs.length} 個三角形（${triList}）
+                        <strong>群組 ${g + 1}：</strong> ${idxs.length} 個三角形（${triList}）
                     </div>
                     `;
                 }
@@ -548,7 +548,6 @@
                 verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
             }
 
-            // 生成最終文字
             let resultText = `分類:${classInfo.className}\n\n`;
             resultText += `三角形數量:${n}\n`;
             triangles.forEach(t => {
@@ -575,7 +574,6 @@
             alert('✅ 已複製到剪貼簿！');
         }
 
-        // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             renderList();
         });

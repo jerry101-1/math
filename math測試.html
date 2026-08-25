@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>分類分析</title>
+    <title>分類分析 - 批次貼上座標版</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
@@ -120,12 +120,45 @@
         }
         .btn-sm { padding: 4px 12px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; }
         .btn-danger-sm { background: #e74c3c; color: white; }
+        .coord-batch-area textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: 'Consolas', 'Microsoft JhengHei', monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            background: #fafbfc;
+        }
+        .coord-batch-area textarea:focus {
+            border-color: #0f3460;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+        }
+        .format-hint {
+            background: #f0f4ff;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #2c3e50;
+            border-left: 4px solid #0f3460;
+            margin: 8px 0;
+        }
+        .format-hint code {
+            background: #e8edf5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
 
     <h1>分類分析</h1>
-    <h2 style="font-size:16px;color:#555;margin-top:-8px;">（顏色文字 + 頂點座標）</h2>
+    <h2 style="font-size:16px;color:#555;margin-top:-8px;">（顏色文字 + 批次貼上座標）</h2>
 
     <!-- ====== 第一區：貼上顏色文字 ====== -->
     <div class="panel">
@@ -143,12 +176,24 @@
         <div id="triangleContainer" class="triangle-list"></div>
     </div>
 
-    <!-- ====== 第二區：輸入頂點座標 ====== -->
+    <!-- ====== 第二區：批次貼上頂點座標 ====== -->
     <div class="panel" id="coordPanel" style="display:none;">
-        <h3>步驟二：輸入每個三角形的頂點座標</h3>
-        <p style="color:#555;font-size:14px;">請為每個三角形輸入 3 個頂點的 (x, y) 座標</p>
-        <div id="coordContainer"></div>
-        <button onclick="analyze()" class="btn-analyze" style="padding:12px 30px;border:none;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;margin-top:12px;">🔍 開始分析</button>
+        <h3>步驟二：批次貼上每個三角形的頂點座標</h3>
+        <div class="format-hint">
+            <strong>格式說明：</strong> 每行一個三角形，格式為 <code>名稱 x1,y1 x2,y2 x3,y3</code><br>
+            例如：<br>
+            <code>綠色 -1.5,2.5 0,2 0,1</code><br>
+            <code>藍色 0,1 0,0 1,0</code>
+        </div>
+        <div class="coord-batch-area">
+            <textarea id="coordBatchInput" placeholder="請在此貼上所有三角形的頂點座標...&#10;例如：&#10;綠色 -1.5,2.5 0,2 0,1&#10;藍色 0,1 0,0 1,0"></textarea>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">
+            <button onclick="loadCoordExample()" style="padding:10px 20px;background:#f39c12;color:white;border:none;border-radius:6px;font-size:15px;font-weight:bold;cursor:pointer;">📂 載入範例座標</button>
+            <button onclick="applyBatchCoords()" class="btn-analyze" style="padding:12px 30px;border:none;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;">📥 套用座標</button>
+            <button onclick="analyze()" class="btn-parse" style="padding:12px 30px;border:none;border-radius:6px;font-size:18px;font-weight:bold;cursor:pointer;">🔍 開始分析</button>
+        </div>
+        <div id="coordStatus" style="margin-top:10px;font-weight:bold;color:#27ae60;"></div>
     </div>
 
     <!-- ====== 第三區：分析結果 ====== -->
@@ -164,7 +209,7 @@
         <div id="outputArea" style="margin-top:16px;"></div>
         <button onclick="copyText()" style="margin-top:10px; padding:8px 15px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">📋 複製最終文字</button>
     </div>
-  
+
     <script>
         // ================================================================
         //  colorMap（中文顏色 → 數字）
@@ -235,7 +280,7 @@
                 renderList();
                 document.getElementById('batchInput').value = '';
                 document.getElementById('coordPanel').style.display = 'block';
-                generateCoordInputs();
+                document.getElementById('coordStatus').textContent = `✅ 已解析 ${triangles.length} 個三角形，請貼上座標`;
             } else {
                 alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
             }
@@ -261,8 +306,6 @@
             document.getElementById('resultPanel').style.display = 'none';
             if (triangles.length === 0) {
                 document.getElementById('coordPanel').style.display = 'none';
-            } else {
-                generateCoordInputs();
             }
         }
 
@@ -272,60 +315,96 @@
             document.getElementById('coordPanel').style.display = 'none';
             document.getElementById('resultPanel').style.display = 'none';
             document.getElementById('batchInput').value = '';
+            document.getElementById('coordBatchInput').value = '';
+            document.getElementById('coordStatus').textContent = '';
         }
 
         // ================================================================
-        //  步驟二：生成座標輸入欄位
+        //  步驟二：批次貼上座標
         // ================================================================
 
-        function generateCoordInputs() {
-            const container = document.getElementById('coordContainer');
-            let html = '';
-            triangles.forEach((t, i) => {
-                html += `
-                    <div class="coord-row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;padding:8px 12px;background:#f8f9fa;border-radius:6px;border:1px solid #e9ecef;">
-                        <label style="font-weight:700;min-width:60px;color:#0f3460;">${t.name}</label>
-                        <input type="text" class="coord-p1" placeholder="頂點1 x,y" value="" style="flex:1;min-width:80px;padding:6px 10px;border:1.5px solid #ced4da;border-radius:6px;font-size:14px;">
-                        <input type="text" class="coord-p2" placeholder="頂點2 x,y" value="" style="flex:1;min-width:80px;padding:6px 10px;border:1.5px solid #ced4da;border-radius:6px;font-size:14px;">
-                        <input type="text" class="coord-p3" placeholder="頂點3 x,y" value="" style="flex:1;min-width:80px;padding:6px 10px;border:1.5px solid #ced4da;border-radius:6px;font-size:14px;">
+        
+        function applyBatchCoords() {
+            const text = document.getElementById('coordBatchInput').value.trim();
+            if (!text) {
+                alert('請先貼上座標資料！');
+                return;
+            }
+
+            const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+            let appliedCount = 0;
+            let errors = [];
+
+            lines.forEach(line => {
+                // 格式：名稱 x1,y1 x2,y2 x3,y3
+                const parts = line.trim().split(/\s+/);
+                if (parts.length < 4) {
+                    errors.push(`格式錯誤：${line}`);
+                    return;
+                }
+
+                const name = parts[0];
+                const coordStrs = parts.slice(1, 4);
+
+                // 解析三個座標
+                const points = coordStrs.map(str => {
+                    const nums = str.split(/[,，]/).map(Number).filter(n => !isNaN(n));
+                    return nums.length >= 2 ? { x: nums[0], y: nums[1] } : null;
+                });
+
+                if (points.some(p => p === null)) {
+                    errors.push(`座標解析失敗：${line}`);
+                    return;
+                }
+
+                // 找對應的三角形
+                const tri = triangles.find(t => t.name === name);
+                if (!tri) {
+                    errors.push(`找不到名稱為「${name}」的三角形`);
+                    return;
+                }
+
+                tri.points = points;
+                const cx = (points[0].x + points[1].x + points[2].x) / 3;
+                const cy = (points[0].y + points[1].y + points[2].y) / 3;
+                tri.center = { x: cx, y: cy };
+                appliedCount++;
+            });
+
+            const statusEl = document.getElementById('coordStatus');
+            if (errors.length === 0) {
+                statusEl.textContent = `✅ 成功套用 ${appliedCount} 個三角形的座標！可以點擊「開始分析」了。`;
+                statusEl.style.color = '#27ae60';
+            } else {
+                statusEl.textContent = `⚠️ 成功 ${appliedCount} 個，${errors.length} 個錯誤：${errors.join('；')}`;
+                statusEl.style.color = '#e74c3c';
+            }
+
+            // 更新顯示（顯示已填入座標的三角形）
+            renderListWithCoords();
+        }
+
+        function renderListWithCoords() {
+            const container = document.getElementById('triangleContainer');
+            if (triangles.length === 0) {
+                container.innerHTML = '<p style="color:#999; text-align:center;">目前沒有三角形數據</p>';
+                return;
+            }
+            container.innerHTML = triangles.map((t, i) => {
+                const hasCoords = t.points && t.points.length === 3;
+                const coordStr = hasCoords ? 
+                    t.points.map(p => `(${p.x.toFixed(2)},${p.y.toFixed(2)})`).join(' ') : 
+                    '⚠️ 未設定座標';
+                return `
+                    <div class="tri-item">
+                        <span>
+                            <b>${t.name}三角形</b> (${t.colors.join('、')}) = ${t.numbers.join('')}<br>
+                            <span style="font-size:12px;color:#888;">${coordStr}</span>
+                        </span>
+                        <button onclick="removeTriangle(${i})">✕</button>
                     </div>
                 `;
-            });
-            container.innerHTML = html;
-        }
-
-        // ================================================================
-        //  步驟三：讀取座標並分析
-        // ================================================================
-
-        function readCoords() {
-            const rows = document.querySelectorAll('.coord-row');
-            let allValid = true;
-            rows.forEach((row, i) => {
-                const p1 = row.querySelector('.coord-p1').value.trim();
-                const p2 = row.querySelector('.coord-p2').value.trim();
-                const p3 = row.querySelector('.coord-p3').value.trim();
-                if (!p1 || !p2 || !p3) {
-                    allValid = false;
-                    return;
-                }
-                const parsePoint = (s) => {
-                    const parts = s.split(/[,，\s]+/).map(Number).filter(n => !isNaN(n));
-                    return parts.length >= 2 ? { x: parts[0], y: parts[1] } : null;
-                };
-                const pt1 = parsePoint(p1);
-                const pt2 = parsePoint(p2);
-                const pt3 = parsePoint(p3);
-                if (!pt1 || !pt2 || !pt3) {
-                    allValid = false;
-                    return;
-                }
-                triangles[i].points = [pt1, pt2, pt3];
-                const cx = (pt1.x + pt2.x + pt3.x) / 3;
-                const cy = (pt1.y + pt2.y + pt3.y) / 3;
-                triangles[i].center = { x: cx, y: cy };
-            });
-            return allValid;
+            }).join('');
         }
 
         // ================================================================
@@ -475,8 +554,11 @@
                 return;
             }
 
-            if (!readCoords()) {
-                alert('請完整輸入所有三角形的 3 個頂點座標！\n格式範例：0,0  2,1  1,3');
+            // 檢查是否所有三角形都有座標
+            const missingCoords = triangles.filter(t => !t.center);
+            if (missingCoords.length > 0) {
+                const names = missingCoords.map(t => t.name).join('、');
+                alert(`以下三角形尚未設定座標：${names}\n請在步驟二中貼上座標並點擊「套用座標」。`);
                 return;
             }
 

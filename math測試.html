@@ -333,7 +333,7 @@
 
             const statusEl = document.getElementById('coordStatus');
             if (errors.length === 0 && appliedCount > 0) {
-                statusEl.textContent = `✅ 成功套用 ${appliedCount} 個三角形的座標！`;
+                statusEl.textContent = `成功套用 ${appliedCount} 個三角形的座標！`;
                 statusEl.style.color = '#27ae60';
             } else if (appliedCount > 0) {
                 statusEl.textContent = `⚠️ 成功 ${appliedCount} 個，${errors.length} 個錯誤：${errors.join('；')}`;

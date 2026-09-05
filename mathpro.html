@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六線分類</title>
+    <title>六線分類 - 含18型分類</title>
     <style>
-        /* --- 樣式與你原有的基本相同，為了保持版面簡潔，此處略去重複樣式，但會保留在完整代碼中 --- */
         body {
             font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
             background: #f0f2f5;
@@ -54,6 +53,9 @@
         .eth-match { background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 10px 16px; margin: 8px 0; }
         .eth-match .eth-id { font-size: 20px; font-weight: 900; color: #d35400; }
         .eth-match .eth-class { font-size: 16px; font-weight: 700; color: #2c3e50; }
+        .type18-match { background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 10px 16px; margin: 8px 0; }
+        .type18-match .type18-id { font-size: 26px; font-weight: 900; color: #155724; }
+        .type18-match .type18-class { font-size: 16px; font-weight: 700; color: #2c3e50; }
         .coord-batch-area textarea { width: 100%; height: 150px; padding: 12px; border: 2px solid #ced4da; border-radius: 6px; font-size: 14px; font-family: 'Consolas', monospace; resize: vertical; box-sizing: border-box; background: #fafbfc; }
         .format-hint { background: #f0f4ff; padding: 12px 16px; border-radius: 6px; font-size: 14px; border-left: 4px solid #0f3460; margin: 8px 0; }
         .format-hint code { background: #e8edf5; padding: 2px 8px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 13px; }
@@ -61,11 +63,17 @@
         .verify-fail { background: #ffebee; border-left: 4px solid #ef5350; padding: 12px 16px; border-radius: 6px; margin: 8px 0; }
         .group-box { background: #eef2f7; padding: 10px 16px; border-radius: 8px; margin: 6px 0; border-left: 4px solid #0f3460; }
         .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .type18-badge { display: inline-block; padding: 4px 16px; border-radius: 20px; font-size: 16px; font-weight: 700; margin: 4px 4px 4px 0; }
+        .type18-A { background: #cce5ff; color: #004085; }
+        .type18-B { background: #d4edda; color: #155724; }
+        .type18-C { background: #fff3cd; color: #856404; }
+        .type18-D { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
-    <h1>六線分類</h1>    
+    <h1>六線分類</h1>
+    <h2 style="font-size:16px;color:#555;margin-top:-8px;">含 18 型分類（A1~A7, B1~B6, C1~C3, D1~D2）</h2>
 
     <!-- ====== 第一區：貼上顏色文字 ====== -->
     <div class="panel">
@@ -108,12 +116,18 @@
         <h2>分類結果</h2>
         <div id="statsContent" class="stats-box"></div>
         <div id="classifyResult" class="classify-box">
-            <div class="label">建議分類</div>
+            <div class="label">📌 建議分類</div>
             <div class="result" id="className"></div>
             <div class="detail" id="classDetail"></div>
         </div>
+        <div id="type18MatchResult" class="type18-match" style="display:none;">
+            <div class="label">🏷️ 18 型分類</div>
+            <div class="type18-id" id="type18Id"></div>
+            <div class="type18-class" id="type18Class"></div>
+            <div style="font-size:13px;color:#555;margin-top:4px;" id="type18Detail"></div>
+        </div>
         <div id="ethMatchResult" class="eth-match" style="display:none;">
-            <div class="label">比對 ETH 43 型</div>
+            <div class="label">🔗 比對 ETH 43 型</div>
             <div class="eth-id" id="ethId"></div>
             <div class="eth-class" id="ethClass"></div>
             <div style="font-size:13px;color:#555;margin-top:4px;" id="ethDetail"></div>
@@ -139,52 +153,52 @@
         };
 
         // ================================================================
-        //  ETH 43 型資料庫
+        //  ETH 43 型資料庫（含 18 型分類對應）
         // ================================================================
         const ETH_DB = {
-            '#01': { count: 7, class: 'D2', triangles: [[1,2,3],[1,4,6],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
-            '#02': { count: 7, class: 'D1', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,5],[2,4,6],[3,4,6],[3,5,6]] },
-            '#03': { count: 4, class: 'A7', triangles: [[1,2,6],[1,4,5],[2,3,4],[3,5,6]] },
-            '#04': { count: 5, class: 'B2', triangles: [[1,4,5],[2,3,4],[2,5,6],[3,4,6],[3,5,6]] },
-            '#05': { count: 5, class: 'B4', triangles: [[1,2,3],[1,4,5],[2,4,5],[2,4,6],[3,5,6]] },
-            '#06': { count: 4, class: 'A4', triangles: [[1,2,6],[1,4,5],[3,4,6],[3,5,6]] },
-            '#07': { count: 4, class: 'A4', triangles: [[1,3,4],[2,4,5],[2,4,6],[3,5,6]] },
-            '#08': { count: 5, class: 'B4', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,6],[3,5,6]] },
-            '#09': { count: 6, class: 'C1', triangles: [[1,2,3],[1,5,6],[2,4,6],[2,5,6],[3,4,5],[3,4,6]] },
-            '#10': { count: 6, class: 'C1', triangles: [[1,3,4],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
-            '#11': { count: 5, class: 'B6', triangles: [[1,2,3],[1,4,5],[2,3,4],[2,5,6],[3,5,6]] },
-            '#12': { count: 6, class: 'C1', triangles: [[1,2,6],[1,3,4],[1,5,6],[2,4,5],[3,4,6],[3,5,6]] },
-            '#13': { count: 5, class: 'B1', triangles: [[1,2,3],[1,2,6],[2,5,6],[3,4,6],[3,5,6]] },
-            '#14': { count: 5, class: 'B1', triangles: [[1,4,5],[2,4,6],[2,5,6],[3,4,5],[3,4,6]] },
-            '#15': { count: 5, class: 'B1', triangles: [[1,2,3],[2,3,4],[2,5,6],[3,4,6],[3,5,6]] },
-            '#16': { count: 4, class: 'A7', triangles: [[1,2,6],[1,3,4],[2,4,5],[3,5,6]] },
-            '#17': { count: 4, class: 'A3', triangles: [[1,2,3],[1,2,6],[2,3,4],[4,5,6]] },
-            '#18': { count: 5, class: 'B5', triangles: [[1,2,3],[1,2,6],[2,4,5],[3,4,5],[3,4,6]] },
-            '#19': { count: 6, class: 'C3', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,4,5],[3,4,5],[3,4,6]] },
-            '#20': { count: 5, class: 'B4', triangles: [[1,2,3],[1,2,6],[1,4,5],[2,3,4],[3,5,6]] },
-            '#21': { count: 5, class: 'B5', triangles: [[1,3,4],[1,5,6],[2,4,6],[2,5,6],[3,4,5]] },
-            '#22': { count: 5, class: 'B5', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,5,6],[4,5,6]] },
-            '#23': { count: 4, class: 'A2', triangles: [[1,4,5],[2,5,6],[3,4,5],[3,4,6]] },
-            '#24': { count: 4, class: 'A2', triangles: [[1,4,5],[2,3,4],[3,5,6],[4,5,6]] },
-            '#25': { count: 5, class: 'B4', triangles: [[1,2,3],[1,5,6],[2,4,6],[2,5,6],[3,4,5]] },
-            '#26': { count: 4, class: 'A4', triangles: [[1,4,5],[2,3,4],[2,5,6],[3,5,6]] },
-            '#27': { count: 4, class: 'A5', triangles: [[1,3,4],[2,3,4],[2,5,6],[3,5,6]] },
-            '#28': { count: 4, class: 'A4', triangles: [[1,2,3],[2,5,6],[3,4,5],[3,4,6]] },
-            '#29': { count: 4, class: 'A4', triangles: [[1,2,3],[1,2,6],[1,4,5],[3,5,6]] },
-            '#30': { count: 4, class: 'A3', triangles: [[1,2,6],[1,4,5],[3,4,5],[3,4,6]] },
-            '#31': { count: 5, class: 'B5', triangles: [[1,2,6],[1,4,5],[2,5,6],[3,4,5],[3,4,6]] },
-            '#32': { count: 4, class: 'A5', triangles: [[1,3,4],[2,4,6],[2,5,6],[3,4,5]] },
-            '#33': { count: 4, class: 'A5', triangles: [[1,2,3],[2,3,4],[3,5,6],[4,5,6]] },
-            '#34': { count: 6, class: 'C2', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,3,4],[3,4,5],[4,5,6]] },
-            '#35': { count: 6, class: 'C2', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,3,4],[3,4,5],[4,5,6]] },
-            '#36': { count: 4, class: 'A6', triangles: [[1,2,6],[1,3,4],[2,5,6],[3,4,5]] },
-            '#37': { count: 4, class: 'A6', triangles: [[1,2,3],[1,5,6],[2,3,4],[4,5,6]] },
-            '#38': { count: 4, class: 'A6', triangles: [[1,2,3],[1,5,6],[2,3,4],[4,5,6]] },
-            '#39': { count: 5, class: 'B3', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,4,5],[4,5,6]] },
-            '#40': { count: 4, class: 'A1', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,4,5]] },
-            '#41': { count: 4, class: 'A3', triangles: [[1,2,3],[1,5,6],[2,3,4],[3,4,5]] },
-            '#42': { count: 4, class: 'A3', triangles: [[1,2,3],[1,2,6],[2,3,4],[4,5,6]] },
-            '#43': { count: 4, class: 'A1', triangles: [[1,2,3],[2,3,4],[3,4,5],[4,5,6]] }
+            '#01': { count: 7, class: 'D2', type18: 'D2', triangles: [[1,2,3],[1,4,6],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
+            '#02': { count: 7, class: 'D1', type18: 'D1', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,5],[2,4,6],[3,4,6],[3,5,6]] },
+            '#03': { count: 4, class: 'A7', type18: 'A7', triangles: [[1,2,6],[1,4,5],[2,3,4],[3,5,6]] },
+            '#04': { count: 5, class: 'B2', type18: 'B2', triangles: [[1,4,5],[2,3,4],[2,5,6],[3,4,6],[3,5,6]] },
+            '#05': { count: 5, class: 'B4', type18: 'B4', triangles: [[1,2,3],[1,4,5],[2,4,5],[2,4,6],[3,5,6]] },
+            '#06': { count: 4, class: 'A4', type18: 'A4', triangles: [[1,2,6],[1,4,5],[3,4,6],[3,5,6]] },
+            '#07': { count: 4, class: 'A4', type18: 'A4', triangles: [[1,3,4],[2,4,5],[2,4,6],[3,5,6]] },
+            '#08': { count: 5, class: 'B4', type18: 'B4', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,6],[3,5,6]] },
+            '#09': { count: 6, class: 'C1', type18: 'C1', triangles: [[1,2,3],[1,5,6],[2,4,6],[2,5,6],[3,4,5],[3,4,6]] },
+            '#10': { count: 6, class: 'C1', type18: 'C1', triangles: [[1,3,4],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
+            '#11': { count: 5, class: 'B6', type18: 'B6', triangles: [[1,2,3],[1,4,5],[2,3,4],[2,5,6],[3,5,6]] },
+            '#12': { count: 6, class: 'C1', type18: 'C1', triangles: [[1,2,6],[1,3,4],[1,5,6],[2,4,5],[3,4,6],[3,5,6]] },
+            '#13': { count: 5, class: 'B1', type18: 'B1', triangles: [[1,2,3],[1,2,6],[2,5,6],[3,4,6],[3,5,6]] },
+            '#14': { count: 5, class: 'B1', type18: 'B1', triangles: [[1,4,5],[2,4,6],[2,5,6],[3,4,5],[3,4,6]] },
+            '#15': { count: 5, class: 'B1', type18: 'B1', triangles: [[1,2,3],[2,3,4],[2,5,6],[3,4,6],[3,5,6]] },
+            '#16': { count: 4, class: 'A7', type18: 'A7', triangles: [[1,2,6],[1,3,4],[2,4,5],[3,5,6]] },
+            '#17': { count: 4, class: 'A3', type18: 'A3', triangles: [[1,2,3],[1,2,6],[2,3,4],[4,5,6]] },
+            '#18': { count: 5, class: 'B5', type18: 'B5', triangles: [[1,2,3],[1,2,6],[2,4,5],[3,4,5],[3,4,6]] },
+            '#19': { count: 6, class: 'C3', type18: 'C3', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,4,5],[3,4,5],[3,4,6]] },
+            '#20': { count: 5, class: 'B4', type18: 'B4', triangles: [[1,2,3],[1,2,6],[1,4,5],[2,3,4],[3,5,6]] },
+            '#21': { count: 5, class: 'B5', type18: 'B5', triangles: [[1,3,4],[1,5,6],[2,4,6],[2,5,6],[3,4,5]] },
+            '#22': { count: 5, class: 'B5', type18: 'B5', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,5,6],[4,5,6]] },
+            '#23': { count: 4, class: 'A2', type18: 'A2', triangles: [[1,4,5],[2,5,6],[3,4,5],[3,4,6]] },
+            '#24': { count: 4, class: 'A2', type18: 'A2', triangles: [[1,4,5],[2,3,4],[3,5,6],[4,5,6]] },
+            '#25': { count: 5, class: 'B4', type18: 'B4', triangles: [[1,2,3],[1,5,6],[2,4,6],[2,5,6],[3,4,5]] },
+            '#26': { count: 4, class: 'A4', type18: 'A4', triangles: [[1,4,5],[2,3,4],[2,5,6],[3,5,6]] },
+            '#27': { count: 4, class: 'A5', type18: 'A5', triangles: [[1,3,4],[2,3,4],[2,5,6],[3,5,6]] },
+            '#28': { count: 4, class: 'A4', type18: 'A4', triangles: [[1,2,3],[2,5,6],[3,4,5],[3,4,6]] },
+            '#29': { count: 4, class: 'A4', type18: 'A4', triangles: [[1,2,3],[1,2,6],[1,4,5],[3,5,6]] },
+            '#30': { count: 4, class: 'A3', type18: 'A3', triangles: [[1,2,6],[1,4,5],[3,4,5],[3,4,6]] },
+            '#31': { count: 5, class: 'B5', type18: 'B5', triangles: [[1,2,6],[1,4,5],[2,5,6],[3,4,5],[3,4,6]] },
+            '#32': { count: 4, class: 'A5', type18: 'A5', triangles: [[1,3,4],[2,4,6],[2,5,6],[3,4,5]] },
+            '#33': { count: 4, class: 'A5', type18: 'A5', triangles: [[1,2,3],[2,3,4],[3,5,6],[4,5,6]] },
+            '#34': { count: 6, class: 'C2', type18: 'C2', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,3,4],[3,4,5],[4,5,6]] },
+            '#35': { count: 6, class: 'C2', type18: 'C2', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,3,4],[3,4,5],[4,5,6]] },
+            '#36': { count: 4, class: 'A6', type18: 'A6', triangles: [[1,2,6],[1,3,4],[2,5,6],[3,4,5]] },
+            '#37': { count: 4, class: 'A6', type18: 'A6', triangles: [[1,2,3],[1,5,6],[2,3,4],[4,5,6]] },
+            '#38': { count: 4, class: 'A6', type18: 'A6', triangles: [[1,2,3],[1,5,6],[2,3,4],[4,5,6]] },
+            '#39': { count: 5, class: 'B3', type18: 'B3', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,4,5],[4,5,6]] },
+            '#40': { count: 4, class: 'A1', type18: 'A1', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,4,5]] },
+            '#41': { count: 4, class: 'A3', type18: 'A3', triangles: [[1,2,3],[1,5,6],[2,3,4],[3,4,5]] },
+            '#42': { count: 4, class: 'A3', type18: 'A3', triangles: [[1,2,3],[1,2,6],[2,3,4],[4,5,6]] },
+            '#43': { count: 4, class: 'A1', type18: 'A1', triangles: [[1,2,3],[2,3,4],[3,4,5],[4,5,6]] }
         };
 
         // ================================================================
@@ -480,10 +494,9 @@
         }
 
         // ================================================================
-        //  🔥 核心升級：精確圖同構比對 (100% 準確)
+        //  精確圖同構比對
         // ================================================================
 
-        // 建立鄰接矩陣（只考慮共用 1 條邊）
         function buildAdjMatrix(triList) {
             const n = triList.length;
             const matrix = Array.from({ length: n }, () => Array(n).fill(0));
@@ -498,12 +511,10 @@
             return matrix;
         }
 
-        // 矩陣轉字串
         function matrixToString(matrix) {
             return matrix.map(row => row.join('')).join('');
         }
 
-        // 獲取所有排列 (Heap's Algorithm)
         function getPermutations(arr) {
             const result = [];
             const n = arr.length;
@@ -528,7 +539,6 @@
             return result;
         }
 
-        // 根據排列置換矩陣
         function permuteMatrix(matrix, perm) {
             const n = matrix.length;
             const newMatrix = Array.from({ length: n }, () => Array(n).fill(0));
@@ -540,7 +550,6 @@
             return newMatrix;
         }
 
-        // 精確比對 ETH 類型
         function matchETHExact(triList) {
             const n = triList.length;
             if (n < 2) return null;
@@ -548,7 +557,6 @@
             const inputMatrix = buildAdjMatrix(triList);
             const inputStr = matrixToString(inputMatrix);
 
-            // 先比對標準排列
             for (const [ethId, data] of Object.entries(ETH_DB)) {
                 if (data.count !== n) continue;
                 const ethTriList = data.triangles.map((t, idx) => ({ numbers: t, name: `T${idx+1}` }));
@@ -556,11 +564,10 @@
                 const ethStr = matrixToString(ethMatrix);
                 
                 if (inputStr === ethStr) {
-                    return { ethId: ethId, class: data.class, count: data.count, matchType: '完全匹配 (標準排列)' };
+                    return { ethId: ethId, class: data.class, type18: data.type18, count: data.count, matchType: '完全匹配 (標準排列)' };
                 }
             }
 
-            // 若標準排列不符，嘗試所有節點排列 (n! 種)
             const indices = Array.from({ length: n }, (_, i) => i);
             const perms = getPermutations(indices);
             
@@ -573,17 +580,16 @@
                 for (const perm of perms) {
                     const permutedMatrix = permuteMatrix(inputMatrix, perm);
                     if (matrixToString(permutedMatrix) === ethStr) {
-                        return { ethId: ethId, class: data.class, count: data.count, matchType: '完全匹配 (同構驗證)' };
+                        return { ethId: ethId, class: data.class, type18: data.type18, count: data.count, matchType: '完全匹配 (同構驗證)' };
                     }
                 }
             }
             
-            // 若無完全匹配，回傳空
             return null;
         }
 
         // ================================================================
-        //  幾何驗證（保留）
+        //  幾何驗證
         // ================================================================
         function geoVerify() {
             const hasCoords = Object.keys(coords).length > 0;
@@ -618,6 +624,19 @@
         }
 
         // ================================================================
+        //  18 型分類顏色
+        // ================================================================
+        function getType18Badge(type18) {
+            const cls = type18.charAt(0);
+            let bg = '#e9ecef', color = '#495057';
+            if (cls === 'A') { bg = '#cce5ff'; color = '#004085'; }
+            else if (cls === 'B') { bg = '#d4edda'; color = '#155724'; }
+            else if (cls === 'C') { bg = '#fff3cd'; color = '#856404'; }
+            else if (cls === 'D') { bg = '#f8d7da'; color = '#721c24'; }
+            return { bg, color };
+        }
+
+        // ================================================================
         //  分類主程式
         // ================================================================
 
@@ -643,12 +662,10 @@
             const totalPairs = n * (n - 1) / 2;
             const calcSum = list0.length + list1.length + list2.length;
 
-            // 🔥 使用精確圖同構比對
             const ethMatch = matchETHExact(triangles);
 
             document.getElementById('resultPanel').style.display = 'block';
 
-            // 顯示統計資訊
             let statsHtml = `
                 <div><span style="font-weight:bold;">三角形總數：</span>${n} 個</div>
                 <div style="margin-top:6px;">
@@ -690,7 +707,24 @@
             document.getElementById('className').textContent = classInfo.className;
             document.getElementById('classDetail').textContent = classInfo.detail;
 
-            // 顯示 ETH 比對結果
+            // ================================================================
+            //  🔥 顯示 18 型分類
+            // ================================================================
+            const type18El = document.getElementById('type18MatchResult');
+            if (ethMatch && ethMatch.type18) {
+                const badge = getType18Badge(ethMatch.type18);
+                type18El.style.display = 'block';
+                document.getElementById('type18Id').textContent = `${ethMatch.type18}`;
+                document.getElementById('type18Id').style.color = badge.color;
+                document.getElementById('type18Class').textContent = `${ethMatch.count} 個面三角形 · ${ethMatch.class} 型`;
+                document.getElementById('type18Detail').textContent = `對應 ETH ${ethMatch.ethId} · ${ethMatch.matchType}`;
+            } else {
+                type18El.style.display = 'none';
+            }
+
+            // ================================================================
+            //  顯示 ETH 比對結果
+            // ================================================================
             const ethEl = document.getElementById('ethMatchResult');
             if (ethMatch) {
                 ethEl.style.display = 'block';
@@ -727,8 +761,12 @@
                 verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
             }
 
+            // ================================================================
+            //  可複製文字輸出（含 18 型）
+            // ================================================================
             let resultText = `分類:${classInfo.className}\n`;
             if (ethMatch) {
+                resultText += `18 型分類: ${ethMatch.type18}\n`;
                 resultText += `ETH 對應: ${ethMatch.ethId} (${ethMatch.class}, ${ethMatch.count}個面三角形) - ${ethMatch.matchType}\n`;
             }
             resultText += `\n三角形數量:${n}\n`;

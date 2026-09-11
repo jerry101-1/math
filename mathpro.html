@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六線分類</title>
+    <title>六線</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
@@ -84,28 +84,96 @@
         .result-box .eth-info strong {
             opacity: 1;
         }
-        .result-box .match-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.15);
-            padding: 2px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-left: 6px;
-        }
         .result-type-A .result-box { background: #004085; }
         .result-type-B .result-box { background: #1e7e34; }
         .result-type-C .result-box { background: #856404; }
         .result-type-D .result-box { background: #721c24; }
         .result-type-unknown .result-box { background: #6c757d; }
+
+        /* ====== Canonical Form 樣式 ====== */
+        .canonical-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .canonical-input {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: 'Consolas', 'Microsoft JhengHei', monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            background: #fafbfc;
+        }
+        .canonical-input:focus {
+            border-color: #0f3460;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+        }
+        .canonical-result-box {
+            background: #e8f0fe;
+            border: 3px solid #0f3460;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .canonical-result-box .label { font-size: 16px; font-weight: 700; color: #0f3460; }
+        .canonical-result-box .result { font-size: 32px; font-weight: 900; color: #c0392b; margin-top: 6px; letter-spacing: 1px; }
+        .canonical-result-box .detail { font-size: 14px; color: #555; margin-top: 8px; }
+        .canonical-result-box .pi-info { font-size: 14px; color: #2c3e50; margin-top: 6px; font-family: 'Consolas', monospace; }
+        .canonical-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        .canonical-table th, .canonical-table td {
+            padding: 8px 12px;
+            border: 1px solid #d1d9e6;
+            text-align: center;
+        }
+        .canonical-table th { background: #16213e; color: white; position: sticky; top: 0; }
+        .canonical-table td { background: white; }
+        .scrollable {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: #555; }
+        .stat-value { font-weight: 700; color: #0f3460; }
+        .min-row td { background: #d4edda !important; font-weight: 700; }
+        .perm-count {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>六線分類</h1>
-    <h2 style="font-size:16px;color:#555;margin-top:-8px;">18 型分類（A1~A7, B1~B6, C1~C3, D1~D2）</h2>
+    <h1>6線</h1>
 
-    <!-- ====== 第一區：貼上顏色文字 ====== -->
+    <!-- ================================================================ -->
+    <!--  第一區：18 型分類（顏色文字 + ETH 比對）                       -->
+    <!-- ================================================================ -->
     <div class="panel">
+        <h2>18 型分類</h2>
         <h3>一：貼上三角形顏色文字</h3>
         <p style="color:#555;font-size:14px;">格式：「[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]」</p>
         <div class="input-group">
@@ -123,7 +191,9 @@
         </div>
     </div>
 
-    <!-- ====== 第二區：頂點座標（選填） ====== -->
+    <!-- ================================================================ -->
+    <!--  第二區：頂點座標（選填）                                       -->
+    <!-- ================================================================ -->
     <div class="panel" id="coordPanel" style="display:none;">
         <h3>二：貼上頂點座標（輔助驗證，選填）</h3>
         <div class="format-hint">
@@ -140,12 +210,13 @@
         <div id="coordStatus" style="margin-top:10px;font-weight:bold;color:#27ae60;"></div>
     </div>
 
-    <!-- ====== 第三區：分類結果 ====== -->
+    <!-- ================================================================ -->
+    <!--  第三區：分類結果                                               -->
+    <!-- ================================================================ -->
     <div class="panel" id="resultPanel" style="display:none;">
         <h2>分類結果</h2>
         <div id="statsContent" class="stats-box"></div>
 
-        <!-- ====== 🔥 合併後的 18 型分類 + ETH 對應 ====== -->
         <div id="resultContainer" style="display:none;">
             <div id="resultBoxWrapper" class="result-type-unknown">
                 <div class="result-box">
@@ -162,6 +233,58 @@
         <button onclick="copyText()" style="margin-top:10px; padding:8px 15px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">複製結果</button>
     </div>
 
+    <!-- ================================================================ -->
+    <!--  第四區：Canonical Form 窮舉（自動計算）                        -->
+    <!-- ================================================================ -->
+    <div class="canonical-panel" id="canonicalPanel" style="display:none;">
+        <h2>Canonical Form</h2>
+        <textarea id="canonicalInput" class="canonical-input" style="display:none;"></textarea>
+
+        <div id="canonicalResultPanel">
+            <div class="canonical-result-box">
+                <div class="label">Canonical Form（字典序最小）</div>
+                <div class="result" id="canonicalResult"></div>
+                <div class="detail" id="canonicalDetail"></div>
+                <div class="pi-info" id="piInfo"></div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <div class="stat-row">
+                    <span class="stat-label">原始三角形數量</span>
+                    <span class="stat-value" id="statCount"></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">窮舉排列數</span>
+                    <span class="stat-value" id="statPerms"></span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">產生相同 Canonical Form 的 π 數量</span>
+                    <span class="stat-value" id="statMinCount"></span>
+                </div>
+            </div>
+
+            <h3 style="margin-top:20px;">原始集合 vs Canonical 集合</h3>
+            <table class="canonical-table">
+                <thead>
+                    <tr>
+                        <th>原始集合</th>
+                        <th>Canonical 集合</th>
+                    </tr>
+                </thead>
+                <tbody id="compareTable"></tbody>
+            </table>
+
+            <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
+            <div id="piTableContainer"></div>
+
+            <h3 style="margin-top:20px;">全部 720 種排列的 Canonical 結果</h3>
+            <div class="scrollable" id="allPermsContainer"></div>
+            <div class="perm-count" id="permCount"></div>
+        </div>
+    </div>
+
+    <div class="footer">18 型分類工具</div>
+
     <script>
         // ================================================================
         //  colorMap（中文顏色 → 數字）
@@ -177,7 +300,7 @@
         };
 
         // ================================================================
-        //  ETH 43 型資料庫（含 18 型分類對應）
+        //  ETH 43 型資料庫
         // ================================================================
         const ETH_DB = {
             '#01': { count: 7, class: 'D2', type18: 'D2', triangles: [[1,2,3],[1,4,6],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
@@ -232,7 +355,7 @@
         let coords = {};
 
         // ================================================================
-        //  步驟一：解析顏色文字
+        //  第一部分：18 型分類
         // ================================================================
 
         function parseAndAdd() {
@@ -282,9 +405,24 @@
                 document.getElementById('coordPanel').style.display = 'block';
                 document.getElementById('resultPanel').style.display = 'none';
                 document.getElementById('coordStatus').textContent = `已解析 ${triangles.length} 個三角形，可選填座標輔助驗證`;
+                
+                // 🔥 自動同步並計算 Canonical Form
+                autoComputeCanonical();
             } else {
                 alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
             }
+        }
+
+        // 🔥 自動同步並計算 Canonical Form
+        function autoComputeCanonical() {
+            if (triangles.length === 0) return;
+            
+            const numbers = triangles.map(t => t.numbers.join(''));
+            const text = numbers.join(', ');
+            document.getElementById('canonicalInput').value = text;
+            
+            // 自動計算 Canonical Form
+            computeCanonicalFromList(triangles.map(t => t.numbers));
         }
 
         function renderList() {
@@ -305,8 +443,13 @@
             triangles.splice(index, 1);
             renderList();
             document.getElementById('resultPanel').style.display = 'none';
-            if (triangles.length === 0) {
+            
+            if (triangles.length > 0) {
+                autoComputeCanonical();
+            } else {
                 document.getElementById('coordPanel').style.display = 'none';
+                document.getElementById('canonicalPanel').style.display = 'none';
+                document.getElementById('canonicalInput').value = '';
             }
         }
 
@@ -316,14 +459,13 @@
             renderList();
             document.getElementById('coordPanel').style.display = 'none';
             document.getElementById('resultPanel').style.display = 'none';
+            document.getElementById('canonicalPanel').style.display = 'none';
             document.getElementById('batchInput').value = '';
             document.getElementById('coordBatchInput').value = '';
             document.getElementById('coordStatus').textContent = '';
+            document.getElementById('canonicalInput').value = '';
+            document.getElementById('canonicalResultPanel').style.display = 'none';
         }
-
-        // ================================================================
-        //  步驟二：套用座標（選填）
-        // ================================================================
 
         function applyCoords() {
             const text = document.getElementById('coordBatchInput').value.trim();
@@ -373,17 +515,13 @@
                 statusEl.textContent = `成功套用 ${appliedCount} 個三角形的座標！`;
                 statusEl.style.color = '#27ae60';
             } else if (appliedCount > 0) {
-                statusEl.textContent = `⚠️ 成功 ${appliedCount} 個，${errors.length} 個錯誤：${errors.join('；')}`;
+                statusEl.textContent = `成功 ${appliedCount} 個，${errors.length} 個錯誤：${errors.join('；')}`;
                 statusEl.style.color = '#e74c3c';
             } else {
-                statusEl.textContent = '❌ 座標套用失敗，請檢查格式';
+                statusEl.textContent = '座標套用失敗，請檢查格式';
                 statusEl.style.color = '#e74c3c';
             }
         }
-
-        // ================================================================
-        //  核心分析函數
-        // ================================================================
 
         function sharedEdges(t1, t2) {
             return t1.numbers.filter(e => t2.numbers.includes(e)).length;
@@ -517,10 +655,6 @@
             };
         }
 
-        // ================================================================
-        //  精確圖同構比對
-        // ================================================================
-
         function buildAdjMatrix(triList) {
             const n = triList.length;
             const matrix = Array.from({ length: n }, () => Array(n).fill(0));
@@ -612,9 +746,6 @@
             return null;
         }
 
-        // ================================================================
-        //  幾何驗證
-        // ================================================================
         function geoVerify() {
             const hasCoords = Object.keys(coords).length > 0;
             if (!hasCoords) return { hasCoords: false, message: '未提供座標，跳過幾何驗證' };
@@ -647,10 +778,6 @@
             return { hasCoords: true, results: results };
         }
 
-        // ================================================================
-        //  分類主程式
-        // ================================================================
-
         function classifyAll() {
             if (triangles.length < 2) {
                 alert('請至少輸入 2 個三角形！');
@@ -677,9 +804,6 @@
 
             document.getElementById('resultPanel').style.display = 'block';
 
-            // ================================================================
-            //  統計資訊
-            // ================================================================
             let statsHtml = `
                 <div><span style="font-weight:bold;">三角形總數：</span>${n} 個</div>
                 <div style="margin-top:6px;">
@@ -719,24 +843,18 @@
 
             document.getElementById('statsContent').innerHTML = statsHtml;
 
-            // ================================================================
-            //  🔥 合併顯示 18 型分類 + ETH 對應（移除「建議分類」）
-            // ================================================================
             const resultContainer = document.getElementById('resultContainer');
             const wrapper = document.getElementById('resultBoxWrapper');
 
             if (ethMatch) {
                 resultContainer.style.display = 'block';
                 
-                // 設定顏色類型
                 const type = ethMatch.type18.charAt(0);
                 wrapper.className = `result-type-${type}`;
                 
-                // 顯示 18 型
                 document.getElementById('resultType18').textContent = ethMatch.type18;
                 document.getElementById('resultType18Sub').textContent = `${ethMatch.count} 個面三角形 · ${ethMatch.class} 型`;
                 
-                // 顯示 ETH 資訊
                 let ethText = `ETH ${ethMatch.ethId}`;
                 if (ethMatch.matchType) {
                     ethText += ` ｜ ${ethMatch.matchType}`;
@@ -746,9 +864,6 @@
                 resultContainer.style.display = 'none';
             }
 
-            // ================================================================
-            //  幾何驗證
-            // ================================================================
             const geoResult = geoVerify();
             const geoEl = document.getElementById('geoVerifyResult');
             if (geoResult.hasCoords) {
@@ -765,21 +880,15 @@
                 geoEl.innerHTML = '<div style="margin-top:12px;padding:12px 16px;background:#f5f5f5;border-radius:8px;color:#888;">📍 未提供座標，跳過幾何驗證</div>';
             }
 
-            // ================================================================
-            //  驗證
-            // ================================================================
             const verifyEl = document.getElementById('verifyResult');
             if (calcSum === totalPairs) {
                 verifyEl.className = 'verify-msg pass';
-                verifyEl.innerHTML = `✅ 驗證成功！總組合數 ${totalPairs} 組完全吻合。`;
+                verifyEl.innerHTML = `驗證成功！總組合數 ${totalPairs} 組完全吻合。`;
             } else {
                 verifyEl.className = 'verify-msg fail';
-                verifyEl.innerHTML = `❌ 驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
+                verifyEl.innerHTML = `驗證失敗！總組合數應為 ${totalPairs} 組，但目前算出來是 ${calcSum} 組。`;
             }
 
-            // ================================================================
-            //  可複製文字輸出
-            // ================================================================
             let resultText = `18 型分類: ${ethMatch ? ethMatch.type18 : '未知'}\n`;
             if (ethMatch) {
                 resultText += `ETH 對應: ${ethMatch.ethId} (${ethMatch.class}, ${ethMatch.count}個面三角形) - ${ethMatch.matchType}\n`;
@@ -807,6 +916,118 @@
             area.select();
             document.execCommand('copy');
             alert('已複製到剪貼簿！');
+        }
+
+        // ================================================================
+        //  第二部分：Canonical Form 窮舉
+        // ================================================================
+
+        function parseCanonicalInput(text) {
+            const normalized = text
+                .replace(/[,，、\s]+/g, ' ')
+                .trim();
+            
+            const tokens = normalized.split(/\s+/).filter(t => t.length > 0);
+            
+            const result = [];
+            for (const token of tokens) {
+                const nums = token.split('').map(Number).filter(n => !isNaN(n));
+                if (nums.length === 3 && nums.every(n => n >= 1 && n <= 6)) {
+                    result.push(nums.slice().sort((a, b) => a - b));
+                }
+            }
+            return result;
+        }
+
+        function setToString(triList) {
+            return triList
+                .map(t => t.slice().sort((a, b) => a - b).join(''))
+                .sort()
+                .join(',');
+        }
+
+        function applyPiToTriangles(triList, pi) {
+            return triList.map(t => {
+                const mapped = t.map(num => pi[num - 1]);
+                return mapped.slice().sort((a, b) => a - b);
+            });
+        }
+
+        // 🔥 直接從三角形列表計算 Canonical Form
+        function computeCanonicalFromList(triList) {
+            if (triList.length === 0) return;
+
+            const perms = getPermutations([1, 2, 3, 4, 5, 6]);
+            let minString = null;
+            let minTriangles = null;
+            let minPi = null;
+            let minCount = 0;
+            const allResults = [];
+
+            for (const pi of perms) {
+                const mapped = applyPiToTriangles(triList, pi);
+                const str = setToString(mapped);
+                allResults.push({ pi: pi.slice(), str: str, triangles: mapped });
+
+                if (minString === null || str < minString) {
+                    minString = str;
+                    minTriangles = mapped;
+                    minPi = pi.slice();
+                    minCount = 1;
+                } else if (str === minString) {
+                    minCount++;
+                }
+            }
+
+            allResults.sort((a, b) => a.str.localeCompare(b.str));
+
+            // 顯示 Canonical 面板
+            document.getElementById('canonicalPanel').style.display = 'block';
+            renderCanonicalResult(triList, minTriangles, minString, minPi, minCount, allResults);
+        }
+
+        function renderCanonicalResult(original, canonical, canonicalStr, pi, minCount, allResults) {
+            document.getElementById('canonicalResultPanel').style.display = 'block';
+
+            document.getElementById('canonicalResult').textContent = canonicalStr;
+            document.getElementById('canonicalDetail').textContent = `共 ${canonical.length} 個三角形`;
+            document.getElementById('piInfo').textContent = `π = (${pi.join(', ')})　｜　1→${pi[0]}, 2→${pi[1]}, 3→${pi[2]}, 4→${pi[3]}, 5→${pi[4]}, 6→${pi[5]}`;
+
+            document.getElementById('statCount').textContent = `${original.length} 個`;
+            document.getElementById('statPerms').textContent = `720 種`;
+            document.getElementById('statMinCount').textContent = `${minCount} 個`;
+
+            let compareHtml = '';
+            const maxLen = Math.max(original.length, canonical.length);
+            for (let i = 0; i < maxLen; i++) {
+                const o = original[i] ? original[i].join('') : '';
+                const c = canonical[i] ? canonical[i].join('') : '';
+                compareHtml += `<tr><td>${o}</td><td>${c}</td></tr>`;
+            }
+            document.getElementById('compareTable').innerHTML = compareHtml;
+
+            let piHtml = '<table class="canonical-table"><thead><tr><th>原始</th><th>套用 π</th><th>排序後</th></tr></thead><tbody>';
+            for (const t of original) {
+                const mapped = t.map(num => pi[num - 1]);
+                const sorted = mapped.slice().sort((a, b) => a - b);
+                piHtml += `<tr><td>${t.join('')}</td><td>${mapped.join('')}</td><td>${sorted.join('')}</td></tr>`;
+            }
+            piHtml += '</tbody></table>';
+            document.getElementById('piTableContainer').innerHTML = piHtml;
+
+            let allHtml = '<table class="canonical-table"><thead><tr><th>#</th><th>π</th><th>Canonical</th></tr></thead><tbody>';
+            for (let i = 0; i < allResults.length; i++) {
+                const r = allResults[i];
+                const isMin = r.str === canonicalStr;
+                allHtml += `<tr class="${isMin ? 'min-row' : ''}">
+                    <td>${i + 1}</td>
+                    <td>(${r.pi.join(',')})</td>
+                    <td>${r.str}</td>
+                </tr>`;
+            }
+            allHtml += '</tbody></table>';
+            document.getElementById('allPermsContainer').innerHTML = allHtml;
+            document.getElementById('permCount').textContent = `共 ${allResults.length} 筆（綠色標記為 Canonical Form）`;
         }
 
         document.addEventListener('DOMContentLoaded', function() {

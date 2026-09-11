@@ -76,11 +76,13 @@
             border: 1px solid #d1d9e6;
             text-align: center;
         }
-        th { background: #16213e; color: white; }
+        th { background: #16213e; color: white; position: sticky; top: 0; }
         td { background: white; }
         .scrollable {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
         }
         .hint {
             background: #f0f4ff;
@@ -107,6 +109,14 @@
         .stat-row:last-child { border-bottom: none; }
         .stat-label { color: #555; }
         .stat-value { font-weight: 700; color: #0f3460; }
+        /* 🔥 修正：綠色標記改套用在 td 上 */
+        .min-row td { background: #d4edda !important; font-weight: 700; }
+        .perm-count {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -117,7 +127,6 @@
         <h2>📥 輸入三角形三邊代碼</h2>
         <div class="hint">
             <strong>格式說明：</strong> 一次輸入所有三角形，用 <strong>逗號</strong>、<strong>頓號</strong> 或 <strong>空格</strong> 分隔。<br>
-            
         </div>
         <textarea id="inputArea" placeholder="請輸入三角形三邊代碼，用逗號或頓號分隔..."></textarea>
         <div class="btn-group">
@@ -163,18 +172,14 @@
         </table>
 
         <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
-        <div id="piTableContainer" class="scrollable"></div>
+        <div id="piTableContainer"></div>
 
-        <h3 style="margin-top:20px;">全部排列的 Canonical 結果（前 20 筆）</h3>
-        <div id="allPermsContainer" class="scrollable"></div>
+        <h3 style="margin-top:20px;">全部 720 種排列的 Canonical 結果</h3>
+        <div class="scrollable" id="allPermsContainer"></div>
+        <div class="perm-count" id="permCount"></div>
     </div>
 
     <script>
-        // ================================================================
-        //  核心函數
-        // ================================================================
-
-        // 解析輸入（支援逗號、頓號、空格、換行分隔）
         function parseInput(text) {
             const normalized = text
                 .replace(/[,，、\s]+/g, ' ')
@@ -192,7 +197,6 @@
             return triangles;
         }
 
-        // 將三角形集合轉為排序後的字串
         function setToString(triangles) {
             return triangles
                 .map(t => t.slice().sort((a, b) => a - b).join(''))
@@ -200,7 +204,6 @@
                 .join(',');
         }
 
-        // 對三角形集合套用 π
         function applyPi(triangles, pi) {
             return triangles.map(t => {
                 const mapped = t.map(num => pi[num - 1]);
@@ -208,7 +211,6 @@
             });
         }
 
-        // 產生所有 6! = 720 種排列
         function getAllPermutations() {
             const arr = [1, 2, 3, 4, 5, 6];
             const result = [];
@@ -234,7 +236,6 @@
             return result;
         }
 
-        // 計算 canonical form
         function computeCanonical() {
             const text = document.getElementById('inputArea').value;
             const triangles = parseInput(text);
@@ -271,10 +272,6 @@
             renderResult(triangles, minTriangles, minString, minPi, minCount, allResults);
         }
 
-        // ================================================================
-        //  顯示結果
-        // ================================================================
-
         function renderResult(original, canonical, canonicalStr, pi, minCount, allResults) {
             document.getElementById('resultPanel').style.display = 'block';
 
@@ -286,6 +283,7 @@
             document.getElementById('statPerms').textContent = `720 種`;
             document.getElementById('statMinCount').textContent = `${minCount} 個`;
 
+            // 對照表
             let compareHtml = '';
             const maxLen = Math.max(original.length, canonical.length);
             for (let i = 0; i < maxLen; i++) {
@@ -295,6 +293,7 @@
             }
             document.getElementById('compareTable').innerHTML = compareHtml;
 
+            // π 驗算表
             let piHtml = '<table><thead><tr><th>原始</th><th>套用 π</th><th>排序後</th></tr></thead><tbody>';
             for (const t of original) {
                 const mapped = t.map(num => pi[num - 1]);
@@ -304,32 +303,26 @@
             piHtml += '</tbody></table>';
             document.getElementById('piTableContainer').innerHTML = piHtml;
 
+            // 全部 720 筆
             let allHtml = '<table><thead><tr><th>#</th><th>π</th><th>Canonical</th></tr></thead><tbody>';
-            const showCount = Math.min(20, allResults.length);
-            for (let i = 0; i < showCount; i++) {
+            for (let i = 0; i < allResults.length; i++) {
                 const r = allResults[i];
                 const isMin = r.str === canonicalStr;
-                allHtml += `<tr style="${isMin ? 'background:#d4edda;' : ''}">
+                allHtml += `<tr class="${isMin ? 'min-row' : ''}">
                     <td>${i + 1}</td>
                     <td>(${r.pi.join(',')})</td>
                     <td>${r.str}</td>
                 </tr>`;
             }
             allHtml += '</tbody></table>';
-            if (allResults.length > 20) {
-                allHtml += `<p style="text-align:center;color:#888;">... 共 ${allResults.length} 筆，僅顯示前 20 筆</p>`;
-            }
             document.getElementById('allPermsContainer').innerHTML = allHtml;
+            document.getElementById('permCount').textContent = `共 ${allResults.length} 筆（綠色標記為 Canonical Form）`;
         }
 
         function clearAll() {
             document.getElementById('inputArea').value = '';
             document.getElementById('resultPanel').style.display = 'none';
         }
-
-        // ================================================================
-        //  初始化（輸入框保持空白）
-        // ================================================================
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('inputArea').value = '';

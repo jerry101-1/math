@@ -1,1 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canonical Form 窮舉</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            color: #1a1a2e;
+        }
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        h1 { color: #16213e; text-align: center; border-bottom: 3px solid #0f3460; padding-bottom: 12px; }
+        h2 { color: #16213e; }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: 'Consolas', 'Microsoft JhengHei', monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            background: #fafbfc;
+        }
+        textarea:focus {
+            border-color: #0f3460;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary { background: #0f3460; color: white; }
+        .btn-primary:hover { background: #1a4a7a; transform: translateY(-2px); }
+        .btn-danger { background: #c0392b; color: white; }
+        .btn-danger:hover { background: #e74c3c; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .result-box {
+            background: #e8f0fe;
+            border: 3px solid #0f3460;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .result-box .label { font-size: 16px; font-weight: 700; color: #0f3460; }
+        .result-box .result { font-size: 32px; font-weight: 900; color: #c0392b; margin-top: 6px; letter-spacing: 1px; }
+        .result-box .detail { font-size: 14px; color: #555; margin-top: 8px; }
+        .result-box .pi-info { font-size: 14px; color: #2c3e50; margin-top: 6px; font-family: 'Consolas', monospace; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #d1d9e6;
+            text-align: center;
+        }
+        th { background: #16213e; color: white; }
+        td { background: white; }
+        .scrollable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .hint {
+            background: #f0f4ff;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            border-left: 4px solid #0f3460;
+            margin: 8px 0;
+        }
+        .hint code {
+            background: #e8edf5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: #555; }
+        .stat-value { font-weight: 700; color: #0f3460; }
+    </style>
+</head>
+<body>
 
+    <h1>Canonical Form 窮舉</h1>
+
+    <div class="panel">
+        <h2>📥 輸入三角形三邊代碼</h2>
+        <div class="hint">
+            <strong>格式說明：</strong> 一次輸入所有三角形，用 <strong>逗號</strong>、<strong>頓號</strong> 或 <strong>空格</strong> 分隔。<br>
+            
+        </div>
+        <textarea id="inputArea" placeholder="請輸入三角形三邊代碼，用逗號或頓號分隔..."></textarea>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="computeCanonical()">計算 Canonical Form</button>
+            <button class="btn btn-danger" onclick="clearAll()">清空</button>
+        </div>
+    </div>
+
+    <div class="panel" id="resultPanel" style="display:none;">
+        <h2>計算結果</h2>
+
+        <div class="result-box">
+            <div class="label">Canonical Form（字典序最小）</div>
+            <div class="result" id="canonicalResult"></div>
+            <div class="detail" id="canonicalDetail"></div>
+            <div class="pi-info" id="piInfo"></div>
+        </div>
+
+        <div style="margin-top:16px;">
+            <div class="stat-row">
+                <span class="stat-label">原始三角形數量</span>
+                <span class="stat-value" id="statCount"></span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">窮舉排列數</span>
+                <span class="stat-value" id="statPerms"></span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">產生相同 Canonical Form 的 π 數量</span>
+                <span class="stat-value" id="statMinCount"></span>
+            </div>
+        </div>
+
+        <h3 style="margin-top:20px;">原始集合 vs Canonical 集合</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>原始集合</th>
+                    <th>Canonical 集合</th>
+                </tr>
+            </thead>
+            <tbody id="compareTable"></tbody>
+        </table>
+
+        <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
+        <div id="piTableContainer" class="scrollable"></div>
+
+        <h3 style="margin-top:20px;">全部排列的 Canonical 結果（前 20 筆）</h3>
+        <div id="allPermsContainer" class="scrollable"></div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  核心函數
+        // ================================================================
+
+        // 解析輸入（支援逗號、頓號、空格、換行分隔）
+        function parseInput(text) {
+            const normalized = text
+                .replace(/[,，、\s]+/g, ' ')
+                .trim();
+            
+            const tokens = normalized.split(/\s+/).filter(t => t.length > 0);
+            
+            const triangles = [];
+            for (const token of tokens) {
+                const nums = token.split('').map(Number).filter(n => !isNaN(n));
+                if (nums.length === 3 && nums.every(n => n >= 1 && n <= 6)) {
+                    triangles.push(nums.slice().sort((a, b) => a - b));
+                }
+            }
+            return triangles;
+        }
+
+        // 將三角形集合轉為排序後的字串
+        function setToString(triangles) {
+            return triangles
+                .map(t => t.slice().sort((a, b) => a - b).join(''))
+                .sort()
+                .join(',');
+        }
+
+        // 對三角形集合套用 π
+        function applyPi(triangles, pi) {
+            return triangles.map(t => {
+                const mapped = t.map(num => pi[num - 1]);
+                return mapped.slice().sort((a, b) => a - b);
+            });
+        }
+
+        // 產生所有 6! = 720 種排列
+        function getAllPermutations() {
+            const arr = [1, 2, 3, 4, 5, 6];
+            const result = [];
+            const n = arr.length;
+            const c = Array(n).fill(0);
+            result.push([...arr]);
+            let i = 0;
+            while (i < n) {
+                if (c[i] < i) {
+                    if (i % 2 === 0) {
+                        [arr[0], arr[i]] = [arr[i], arr[0]];
+                    } else {
+                        [arr[c[i]], arr[i]] = [arr[i], arr[c[i]]];
+                    }
+                    result.push([...arr]);
+                    c[i]++;
+                    i = 0;
+                } else {
+                    c[i] = 0;
+                    i++;
+                }
+            }
+            return result;
+        }
+
+        // 計算 canonical form
+        function computeCanonical() {
+            const text = document.getElementById('inputArea').value;
+            const triangles = parseInput(text);
+
+            if (triangles.length === 0) {
+                alert('請輸入至少一個三角形！\n格式：每組三位數字（1~6），用逗號或頓號分隔。');
+                return;
+            }
+
+            const perms = getAllPermutations();
+            let minString = null;
+            let minTriangles = null;
+            let minPi = null;
+            let minCount = 0;
+            const allResults = [];
+
+            for (const pi of perms) {
+                const mapped = applyPi(triangles, pi);
+                const str = setToString(mapped);
+                allResults.push({ pi: pi.slice(), str: str, triangles: mapped });
+
+                if (minString === null || str < minString) {
+                    minString = str;
+                    minTriangles = mapped;
+                    minPi = pi.slice();
+                    minCount = 1;
+                } else if (str === minString) {
+                    minCount++;
+                }
+            }
+
+            allResults.sort((a, b) => a.str.localeCompare(b.str));
+
+            renderResult(triangles, minTriangles, minString, minPi, minCount, allResults);
+        }
+
+        // ================================================================
+        //  顯示結果
+        // ================================================================
+
+        function renderResult(original, canonical, canonicalStr, pi, minCount, allResults) {
+            document.getElementById('resultPanel').style.display = 'block';
+
+            document.getElementById('canonicalResult').textContent = canonicalStr;
+            document.getElementById('canonicalDetail').textContent = `共 ${canonical.length} 個三角形`;
+            document.getElementById('piInfo').textContent = `π = (${pi.join(', ')})　｜　1→${pi[0]}, 2→${pi[1]}, 3→${pi[2]}, 4→${pi[3]}, 5→${pi[4]}, 6→${pi[5]}`;
+
+            document.getElementById('statCount').textContent = `${original.length} 個`;
+            document.getElementById('statPerms').textContent = `720 種`;
+            document.getElementById('statMinCount').textContent = `${minCount} 個`;
+
+            let compareHtml = '';
+            const maxLen = Math.max(original.length, canonical.length);
+            for (let i = 0; i < maxLen; i++) {
+                const o = original[i] ? original[i].join('') : '';
+                const c = canonical[i] ? canonical[i].join('') : '';
+                compareHtml += `<tr><td>${o}</td><td>${c}</td></tr>`;
+            }
+            document.getElementById('compareTable').innerHTML = compareHtml;
+
+            let piHtml = '<table><thead><tr><th>原始</th><th>套用 π</th><th>排序後</th></tr></thead><tbody>';
+            for (const t of original) {
+                const mapped = t.map(num => pi[num - 1]);
+                const sorted = mapped.slice().sort((a, b) => a - b);
+                piHtml += `<tr><td>${t.join('')}</td><td>${mapped.join('')}</td><td>${sorted.join('')}</td></tr>`;
+            }
+            piHtml += '</tbody></table>';
+            document.getElementById('piTableContainer').innerHTML = piHtml;
+
+            let allHtml = '<table><thead><tr><th>#</th><th>π</th><th>Canonical</th></tr></thead><tbody>';
+            const showCount = Math.min(20, allResults.length);
+            for (let i = 0; i < showCount; i++) {
+                const r = allResults[i];
+                const isMin = r.str === canonicalStr;
+                allHtml += `<tr style="${isMin ? 'background:#d4edda;' : ''}">
+                    <td>${i + 1}</td>
+                    <td>(${r.pi.join(',')})</td>
+                    <td>${r.str}</td>
+                </tr>`;
+            }
+            allHtml += '</tbody></table>';
+            if (allResults.length > 20) {
+                allHtml += `<p style="text-align:center;color:#888;">... 共 ${allResults.length} 筆，僅顯示前 20 筆</p>`;
+            }
+            document.getElementById('allPermsContainer').innerHTML = allHtml;
+        }
+
+        function clearAll() {
+            document.getElementById('inputArea').value = '';
+            document.getElementById('resultPanel').style.display = 'none';
+        }
+
+        // ================================================================
+        //  初始化（輸入框保持空白）
+        // ================================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('inputArea').value = '';
+        });
+    </script>
+</body>
+</html>

@@ -33,19 +33,10 @@
             transition: 0.2s;
             margin-right: 4px;
         }
-        .tab:hover {
-            background: #dee2e6;
-        }
-        .tab.active {
-            background: #0f3460;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        .tab:hover { background: #dee2e6; }
+        .tab.active { background: #0f3460; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         .panel {
             background: white;
@@ -99,27 +90,10 @@
             text-align: center;
             color: white;
         }
-        .result-box .type18 {
-            font-size: 36px;
-            font-weight: 900;
-            letter-spacing: 2px;
-        }
-        .result-box .type18-sub {
-            font-size: 16px;
-            font-weight: 400;
-            opacity: 0.9;
-            margin-top: 2px;
-        }
-        .result-box .eth-info {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-top: 8px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            padding-top: 8px;
-        }
-        .result-box .eth-info strong {
-            opacity: 1;
-        }
+        .result-box .type18 { font-size: 36px; font-weight: 900; letter-spacing: 2px; }
+        .result-box .type18-sub { font-size: 16px; font-weight: 400; opacity: 0.9; margin-top: 2px; }
+        .result-box .eth-info { font-size: 14px; opacity: 0.8; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; }
+        .result-box .eth-info strong { opacity: 1; }
         .result-type-A .result-box { background: #004085; }
         .result-type-B .result-box { background: #1e7e34; }
         .result-type-C .result-box { background: #856404; }
@@ -146,11 +120,7 @@
             box-sizing: border-box;
             background: #fafbfc;
         }
-        .canonical-input:focus {
-            border-color: #0f3460;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
-        }
+        .canonical-input:focus { border-color: #0f3460; outline: none; box-shadow: 0 0 0 3px rgba(15,52,96,0.1); }
         .canonical-result-box {
             background: #e8f0fe;
             border: 3px solid #0f3460;
@@ -163,41 +133,36 @@
         .canonical-result-box .result { font-size: 32px; font-weight: 900; color: #c0392b; margin-top: 6px; letter-spacing: 1px; }
         .canonical-result-box .detail { font-size: 14px; color: #555; margin-top: 8px; }
         .canonical-result-box .pi-info { font-size: 14px; color: #2c3e50; margin-top: 6px; font-family: 'Consolas', monospace; }
-        .canonical-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 12px 0;
-            font-size: 14px;
-        }
-        .canonical-table th, .canonical-table td {
-            padding: 8px 12px;
-            border: 1px solid #d1d9e6;
-            text-align: center;
-        }
+        .canonical-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+        .canonical-table th, .canonical-table td { padding: 8px 12px; border: 1px solid #d1d9e6; text-align: center; }
         .canonical-table th { background: #16213e; color: white; position: sticky; top: 0; }
         .canonical-table td { background: white; }
-        .scrollable {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #d1d9e6;
-            border-radius: 8px;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 15px;
-        }
+        .scrollable { max-height: 500px; overflow-y: auto; border: 1px solid #d1d9e6; border-radius: 8px; }
+        .stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 15px; }
         .stat-row:last-child { border-bottom: none; }
         .stat-label { color: #555; }
         .stat-value { font-weight: 700; color: #0f3460; }
         .min-row td { background: #d4edda !important; font-weight: 700; }
-        .perm-count {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-            margin-top: 8px;
+        .perm-count { text-align: center; color: #888; font-size: 14px; margin-top: 8px; }
+
+        /* ====== 可畫性檢驗 ====== */
+        .realizable {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: #155724;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+        .not-realizable {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: #856404;
+            margin-top: 12px;
+            font-size: 15px;
         }
     </style>
 </head>
@@ -234,6 +199,9 @@
                     <div class="detail" id="canonicalDetail"></div>
                     <div class="pi-info" id="piInfo"></div>
                 </div>
+
+                <!-- 🔥 可畫性檢驗 -->
+                <div id="realizabilityCanonical"></div>
 
                 <div style="margin-top:16px;">
                     <div class="stat-row">
@@ -346,6 +314,9 @@
                     <div class="detail" id="canonicalDetailAuto"></div>
                     <div class="pi-info" id="piInfoAuto"></div>
                 </div>
+
+                <!-- 🔥 可畫性檢驗 -->
+                <div id="realizabilityAuto"></div>
 
                 <div style="margin-top:16px;">
                     <div class="stat-row">
@@ -465,6 +436,7 @@
         // ================================================================
         let triangles = [];
         let coords = {};
+        let ETH_CANONICAL_MAP = null;
 
         // ================================================================
         //  通用函數
@@ -513,12 +485,8 @@
         }
 
         function parseCanonicalInput(text) {
-            const normalized = text
-                .replace(/[,，、\s]+/g, ' ')
-                .trim();
-            
+            const normalized = text.replace(/[,，、\s]+/g, ' ').trim();
             const tokens = normalized.split(/\s+/).filter(t => t.length > 0);
-            
             const result = [];
             for (const token of tokens) {
                 const nums = token.split('').map(Number).filter(n => !isNaN(n));
@@ -527,6 +495,58 @@
                 }
             }
             return result;
+        }
+
+        // ================================================================
+        //  🔥 建立 ETH 43 型的 Canonical Form 對照表
+        // ================================================================
+        function buildETHCanonicalMap() {
+            const map = {};
+            const perms = getPermutations([1, 2, 3, 4, 5, 6]);
+            
+            for (const [ethId, data] of Object.entries(ETH_DB)) {
+                const triList = data.triangles.map(t => t.slice().sort((a, b) => a - b));
+                let minString = null;
+                
+                for (const pi of perms) {
+                    const mapped = applyPiToTriangles(triList, pi);
+                    const str = setToString(mapped);
+                    if (minString === null || str < minString) {
+                        minString = str;
+                    }
+                }
+                
+                map[minString] = { ethId: ethId, class: data.class, count: data.count };
+            }
+            
+            return map;
+        }
+
+        // 🔥 可畫性檢驗 HTML 產生器
+        function getRealizabilityHtml(canonicalStr) {
+            if (ETH_CANONICAL_MAP === null) {
+                ETH_CANONICAL_MAP = buildETHCanonicalMap();
+            }
+            
+            const match = ETH_CANONICAL_MAP[canonicalStr];
+            
+            if (match) {
+                return `
+                    <div class="realizable">
+                        <strong>✅ 可畫性檢驗：可以畫出來</strong><br>
+                        此面三角形集合與 <strong>ETH ${match.ethId}</strong>（${match.class} 型，${match.count} 個面三角形）同構，<br>
+                        存在一組「無平行、無三線共點」的六條直線排列可實現。
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="not-realizable">
+                        <strong>⚠️ 可畫性檢驗：不在 ETH 43 型中</strong><br>
+                        在「無平行、無三線共點」的條件下，可能畫不出來。<br>
+                        請確認：① 輸入是否為完整的全部面三角形？② 圖形中是否有平行線或三線共點？
+                    </div>
+                `;
+            }
         }
 
         // ================================================================
@@ -583,6 +603,10 @@
             document.getElementById(id('canonicalResult')).textContent = canonicalStr;
             document.getElementById(id('canonicalDetail')).textContent = `共 ${canonical.length} 個三角形`;
             document.getElementById(id('piInfo')).textContent = `π = (${pi.join(', ')})　｜　1→${pi[0]}, 2→${pi[1]}, 3→${pi[2]}, 4→${pi[3]}, 5→${pi[4]}, 6→${pi[5]}`;
+
+            // 🔥 可畫性檢驗
+            const realizabilityEl = document.getElementById(prefix === 'canonical' ? 'realizabilityCanonical' : 'realizabilityAuto');
+            realizabilityEl.innerHTML = getRealizabilityHtml(canonicalStr);
 
             document.getElementById(id('statCount')).textContent = `${original.length} 個`;
             document.getElementById(id('statPerms')).textContent = `720 種`;
@@ -673,7 +697,6 @@
                 document.getElementById('resultPanel').style.display = 'none';
                 document.getElementById('coordStatus').textContent = `已解析 ${triangles.length} 個三角形，可選填座標輔助驗證`;
                 
-                // 自動計算 Canonical Form
                 autoComputeCanonical();
             } else {
                 alert("解析失敗。請確認格式為：`[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]`");
@@ -687,7 +710,6 @@
             const text = numbers.join(', ');
             document.getElementById('canonicalInputAuto').value = text;
             
-            // 自動計算 Canonical Form
             const triList = triangles.map(t => t.numbers);
             const perms = getPermutations([1, 2, 3, 4, 5, 6]);
             let minString = null;
@@ -1184,6 +1206,8 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderList();
+            // 預先建立 ETH Canonical Map
+            ETH_CANONICAL_MAP = buildETHCanonicalMap();
         });
     </script>
 </body>

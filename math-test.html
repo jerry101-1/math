@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canonical Form 窮舉</title>
+    <title>Canonical Form</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
@@ -109,7 +109,6 @@
         .stat-row:last-child { border-bottom: none; }
         .stat-label { color: #555; }
         .stat-value { font-weight: 700; color: #0f3460; }
-        /* 🔥 修正：綠色標記改套用在 td 上 */
         .min-row td { background: #d4edda !important; font-weight: 700; }
         .perm-count {
             text-align: center;
@@ -117,16 +116,33 @@
             font-size: 14px;
             margin-top: 8px;
         }
+        .realizable {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: #155724;
+            margin-top: 12px;
+        }
+        .not-realizable {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: #856404;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Canonical Form 窮舉</h1>
+    <h1>Canonical Form</h1>
 
     <div class="panel">
         <h2>📥 輸入三角形三邊代碼</h2>
         <div class="hint">
             <strong>格式說明：</strong> 一次輸入所有三角形，用 <strong>逗號</strong>、<strong>頓號</strong> 或 <strong>空格</strong> 分隔。<br>
+            例如：<code>123, 124, 135, 246</code>
         </div>
         <textarea id="inputArea" placeholder="請輸入三角形三邊代碼，用逗號或頓號分隔..."></textarea>
         <div class="btn-group">
@@ -144,6 +160,8 @@
             <div class="detail" id="canonicalDetail"></div>
             <div class="pi-info" id="piInfo"></div>
         </div>
+
+        <div id="realizabilityResult"></div>
 
         <div style="margin-top:16px;">
             <div class="stat-row">
@@ -180,6 +198,86 @@
     </div>
 
     <script>
+        // ================================================================
+        //  ETH 43 型資料庫
+        // ================================================================
+        const ETH_DB = {
+            '#01': { count: 7, class: 'D2', triangles: [[1,2,3],[1,4,6],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
+            '#02': { count: 7, class: 'D1', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,5],[2,4,6],[3,4,6],[3,5,6]] },
+            '#03': { count: 4, class: 'A7', triangles: [[1,2,6],[1,4,5],[2,3,4],[3,5,6]] },
+            '#04': { count: 5, class: 'B2', triangles: [[1,4,5],[2,3,4],[2,5,6],[3,4,6],[3,5,6]] },
+            '#05': { count: 5, class: 'B4', triangles: [[1,2,3],[1,4,5],[2,4,5],[2,4,6],[3,5,6]] },
+            '#06': { count: 4, class: 'A4', triangles: [[1,2,6],[1,4,5],[3,4,6],[3,5,6]] },
+            '#07': { count: 4, class: 'A4', triangles: [[1,3,4],[2,4,5],[2,4,6],[3,5,6]] },
+            '#08': { count: 5, class: 'B4', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,6],[3,5,6]] },
+            '#09': { count: 6, class: 'C1', triangles: [[1,2,3],[1,5,6],[2,4,6],[2,5,6],[3,4,5],[3,4,6]] },
+            '#10': { count: 6, class: 'C1', triangles: [[1,3,4],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
+            '#11': { count: 5, class: 'B6', triangles: [[1,2,3],[1,4,5],[2,3,4],[2,5,6],[3,5,6]] },
+            '#12': { count: 6, class: 'C1', triangles: [[1,2,6],[1,3,4],[1,5,6],[2,4,5],[3,4,6],[3,5,6]] },
+            '#13': { count: 5, class: 'B1', triangles: [[1,2,3],[1,2,6],[2,5,6],[3,4,6],[3,5,6]] },
+            '#14': { count: 5, class: 'B1', triangles: [[1,4,5],[2,4,6],[2,5,6],[3,4,5],[3,4,6]] },
+            '#15': { count: 5, class: 'B1', triangles: [[1,2,3],[2,3,4],[2,5,6],[3,4,6],[3,5,6]] },
+            '#16': { count: 4, class: 'A7', triangles: [[1,2,6],[1,3,4],[2,4,5],[3,5,6]] },
+            '#17': { count: 4, class: 'A3', triangles: [[1,2,3],[1,2,6],[2,3,4],[4,5,6]] },
+            '#18': { count: 5, class: 'B5', triangles: [[1,2,3],[1,2,6],[2,4,5],[3,4,5],[3,4,6]] },
+            '#19': { count: 6, class: 'C3', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,4,5],[3,4,5],[3,4,6]] },
+            '#20': { count: 5, class: 'B4', triangles: [[1,2,3],[1,2,6],[1,4,5],[2,3,4],[3,5,6]] },
+            '#21': { count: 5, class: 'B5', triangles: [[1,3,4],[1,5,6],[2,4,6],[2,5,6],[3,4,5]] },
+            '#22': { count: 5, class: 'B5', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,5,6],[4,5,6]] },
+            '#23': { count: 4, class: 'A2', triangles: [[1,4,5],[2,5,6],[3,4,5],[3,4,6]] },
+            '#24': { count: 4, class: 'A2', triangles: [[1,4,5],[2,3,4],[3,5,6],[4,5,6]] },
+            '#25': { count: 5, class: 'B4', triangles: [[1,2,3],[1,5,6],[2,4,6],[2,5,6],[3,4,5]] },
+            '#26': { count: 4, class: 'A4', triangles: [[1,4,5],[2,3,4],[2,5,6],[3,5,6]] },
+            '#27': { count: 4, class: 'A5', triangles: [[1,3,4],[2,3,4],[2,5,6],[3,5,6]] },
+            '#28': { count: 4, class: 'A4', triangles: [[1,2,3],[2,5,6],[3,4,5],[3,4,6]] },
+            '#29': { count: 4, class: 'A4', triangles: [[1,2,3],[1,2,6],[1,4,5],[3,5,6]] },
+            '#30': { count: 4, class: 'A3', triangles: [[1,2,6],[1,4,5],[3,4,5],[3,4,6]] },
+            '#31': { count: 5, class: 'B5', triangles: [[1,2,6],[1,4,5],[2,5,6],[3,4,5],[3,4,6]] },
+            '#32': { count: 4, class: 'A5', triangles: [[1,3,4],[2,4,6],[2,5,6],[3,4,5]] },
+            '#33': { count: 4, class: 'A5', triangles: [[1,2,3],[2,3,4],[3,5,6],[4,5,6]] },
+            '#34': { count: 6, class: 'C2', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,3,4],[3,4,5],[4,5,6]] },
+            '#35': { count: 6, class: 'C2', triangles: [[1,2,3],[1,2,6],[1,5,6],[2,3,4],[3,4,5],[4,5,6]] },
+            '#36': { count: 4, class: 'A6', triangles: [[1,2,6],[1,3,4],[2,5,6],[3,4,5]] },
+            '#37': { count: 4, class: 'A6', triangles: [[1,2,3],[1,5,6],[2,3,4],[4,5,6]] },
+            '#38': { count: 4, class: 'A6', triangles: [[1,2,3],[1,5,6],[2,3,4],[4,5,6]] },
+            '#39': { count: 5, class: 'B3', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,4,5],[4,5,6]] },
+            '#40': { count: 4, class: 'A1', triangles: [[1,2,3],[1,2,6],[2,3,4],[3,4,5]] },
+            '#41': { count: 4, class: 'A3', triangles: [[1,2,3],[1,5,6],[2,3,4],[3,4,5]] },
+            '#42': { count: 4, class: 'A3', triangles: [[1,2,3],[1,2,6],[2,3,4],[4,5,6]] },
+            '#43': { count: 4, class: 'A1', triangles: [[1,2,3],[2,3,4],[3,4,5],[4,5,6]] }
+        };
+
+        // ================================================================
+        //  ETH 43 型的 Canonical Form 對照表（啟動時自動建立）
+        // ================================================================
+        let ETH_CANONICAL_MAP = null;
+
+        function buildETHCanonicalMap() {
+            const map = {};
+            const perms = getAllPermutations();
+            
+            for (const [ethId, data] of Object.entries(ETH_DB)) {
+                const triList = data.triangles.map(t => t.slice().sort((a, b) => a - b));
+                let minString = null;
+                
+                for (const pi of perms) {
+                    const mapped = applyPi(triList, pi);
+                    const str = setToString(mapped);
+                    if (minString === null || str < minString) {
+                        minString = str;
+                    }
+                }
+                
+                map[minString] = { ethId: ethId, class: data.class, count: data.count };
+            }
+            
+            return map;
+        }
+
+        // ================================================================
+        //  核心函數
+        // ================================================================
+
         function parseInput(text) {
             const normalized = text
                 .replace(/[,，、\s]+/g, ' ')
@@ -236,6 +334,10 @@
             return result;
         }
 
+        // ================================================================
+        //  主程式
+        // ================================================================
+
         function computeCanonical() {
             const text = document.getElementById('inputArea').value;
             const triangles = parseInput(text);
@@ -282,6 +384,32 @@
             document.getElementById('statCount').textContent = `${original.length} 個`;
             document.getElementById('statPerms').textContent = `720 種`;
             document.getElementById('statMinCount').textContent = `${minCount} 個`;
+
+            // 🔥 可畫性檢驗
+            const realizabilityEl = document.getElementById('realizabilityResult');
+            if (ETH_CANONICAL_MAP === null) {
+                ETH_CANONICAL_MAP = buildETHCanonicalMap();
+            }
+            
+            const match = ETH_CANONICAL_MAP[canonicalStr];
+            
+            if (match) {
+                realizabilityEl.innerHTML = `
+                    <div class="realizable">
+                        <strong>可畫性檢驗：可以畫出來</strong><br>
+                        此面三角形集合與 <strong>ETH ${match.ethId}</strong>（${match.class} 型，${match.count} 個面三角形）同構，<br>
+                        存在一組「無平行、無三線共點」的六條直線排列可實現。
+                    </div>
+                `;
+            } else {
+                realizabilityEl.innerHTML = `
+                    <div class="not-realizable">
+                        <strong>可畫性檢驗：不在 ETH 43 型中</strong><br>
+                        在「無平行、無三線共點」的條件下，可能畫不出來。<br>
+                        請確認：① 輸入是否為完整的全部面三角形？② 圖形中是否有平行線或三線共點？
+                    </div>
+                `;
+            }
 
             // 對照表
             let compareHtml = '';

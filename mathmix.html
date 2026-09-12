@@ -14,7 +14,6 @@
             color: #1a1a2e;
         }
 
-        /* ====== 分頁標籤 ====== */
         .tabs {
             display: flex;
             gap: 0;
@@ -81,7 +80,6 @@
         .group-box { background: #eef2f7; padding: 10px 16px; border-radius: 8px; margin: 6px 0; border-left: 4px solid #0f3460; }
         .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 
-        /* ====== 18 型分類結果 ====== */
         .result-box {
             background: #0f3460;
             border-radius: 12px;
@@ -100,7 +98,6 @@
         .result-type-D .result-box { background: #721c24; }
         .result-type-unknown .result-box { background: #6c757d; }
 
-        /* ====== Canonical Form 樣式 ====== */
         .canonical-panel {
             background: white;
             border-radius: 12px;
@@ -145,7 +142,7 @@
         .min-row td { background: #d4edda !important; font-weight: 700; }
         .perm-count { text-align: center; color: #888; font-size: 14px; margin-top: 8px; }
 
-        /* ====== 可畫性檢驗 ====== */
+        /* 可畫性檢驗 */
         .realizable {
             background: #d4edda;
             border-left: 4px solid #28a745;
@@ -156,11 +153,11 @@
             font-size: 15px;
         }
         .not-realizable {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
             padding: 14px 18px;
             border-radius: 8px;
-            color: #856404;
+            color: #721c24;
             margin-top: 12px;
             font-size: 15px;
         }
@@ -170,18 +167,17 @@
 
     <h1>六線分類工具</h1>
 
-    <!-- ====== 分頁標籤 ====== -->
     <div class="tabs">
         <button class="tab active" onclick="switchTab('canonical')">📐 Canonical Form 窮舉</button>
         <button class="tab" onclick="switchTab('combined')">🔗 綜合工具（18型分類）</button>
     </div>
 
     <!-- ================================================================ -->
-    <!--  分頁一：Canonical Form 窮舉（獨立使用）                        -->
+    <!--  分頁一：Canonical Form 窮舉                                    -->
     <!-- ================================================================ -->
     <div id="tab-canonical" class="tab-content active">
         <div class="canonical-panel">
-            <h2>📐 Canonical Form 窮舉（6! = 720 種）</h2>
+            <h2>Canonical Form</h2>
             <div class="format-hint">
                 <strong>格式說明：</strong> 一次輸入所有三角形，用 <strong>逗號</strong>、<strong>頓號</strong> 或 <strong>空格</strong> 分隔。<br>
                 例如：<code>123, 146, 156, 236, 245, 246, 345</code>
@@ -193,60 +189,62 @@
             </div>
 
             <div id="canonicalResultPanel" style="display:none;">
-                <div class="canonical-result-box">
-                    <div class="label">Canonical Form（字典序最小）</div>
-                    <div class="result" id="canonicalResult"></div>
-                    <div class="detail" id="canonicalDetail"></div>
-                    <div class="pi-info" id="piInfo"></div>
-                </div>
-
-                <!-- 🔥 可畫性檢驗 -->
+                <!-- 🔥 可畫性檢驗（先檢查） -->
                 <div id="realizabilityCanonical"></div>
 
-                <div style="margin-top:16px;">
-                    <div class="stat-row">
-                        <span class="stat-label">原始三角形數量</span>
-                        <span class="stat-value" id="statCount"></span>
+                <!-- 🔥 只有在可畫時才顯示以下內容 -->
+                <div id="canonicalDetails" style="display:none;">
+                    <div class="canonical-result-box" style="margin-top:16px;">
+                        <div class="label">Canonical Form（字典序最小）</div>
+                        <div class="result" id="canonicalResult"></div>
+                        <div class="detail" id="canonicalDetail"></div>
+                        <div class="pi-info" id="piInfo"></div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">窮舉排列數</span>
-                        <span class="stat-value" id="statPerms"></span>
+
+                    <div style="margin-top:16px;">
+                        <div class="stat-row">
+                            <span class="stat-label">原始三角形數量</span>
+                            <span class="stat-value" id="statCount"></span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">窮舉排列數</span>
+                            <span class="stat-value" id="statPerms"></span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">產生相同 Canonical Form 的 π 數量</span>
+                            <span class="stat-value" id="statMinCount"></span>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">產生相同 Canonical Form 的 π 數量</span>
-                        <span class="stat-value" id="statMinCount"></span>
-                    </div>
+
+                    <h3 style="margin-top:20px;">原始集合 vs Canonical 集合</h3>
+                    <table class="canonical-table">
+                        <thead>
+                            <tr>
+                                <th>原始集合</th>
+                                <th>Canonical 集合</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compareTable"></tbody>
+                    </table>
+
+                    <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
+                    <div id="piTableContainer"></div>
+
+                    <h3 style="margin-top:20px;">全部 720 種排列的 Canonical 結果</h3>
+                    <div class="scrollable" id="allPermsContainer"></div>
+                    <div class="perm-count" id="permCount"></div>
                 </div>
-
-                <h3 style="margin-top:20px;">原始集合 vs Canonical 集合</h3>
-                <table class="canonical-table">
-                    <thead>
-                        <tr>
-                            <th>原始集合</th>
-                            <th>Canonical 集合</th>
-                        </tr>
-                    </thead>
-                    <tbody id="compareTable"></tbody>
-                </table>
-
-                <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
-                <div id="piTableContainer"></div>
-
-                <h3 style="margin-top:20px;">全部 720 種排列的 Canonical 結果</h3>
-                <div class="scrollable" id="allPermsContainer"></div>
-                <div class="perm-count" id="permCount"></div>
             </div>
         </div>
     </div>
 
     <!-- ================================================================ -->
-    <!--  分頁二：綜合工具（18 型分類 + 自動 Canonical Form）            -->
+    <!--  分頁二：綜合工具                                                -->
     <!-- ================================================================ -->
     <div id="tab-combined" class="tab-content">
 
-        <!-- 第一區：18 型分類 -->
         <div class="panel">
-            <h2>🔗 綜合工具（18 型分類 + Canonical Form）</h2>
+            <h2>18 型 + Canonical Form</h2>
             <h3>一：貼上三角形顏色文字</h3>
             <p style="color:#555;font-size:14px;">格式：「[名稱]三角形三邊顏色:[顏色]、[顏色]、[顏色]」</p>
             <div class="input-group">
@@ -264,9 +262,8 @@
             </div>
         </div>
 
-        <!-- 第二區：頂點座標 -->
         <div class="panel" id="coordPanel" style="display:none;">
-            <h3>二：貼上頂點座標（輔助驗證，選填）</h3>
+            <h3>二：貼上頂點座標（選填）</h3>
             <div class="format-hint">
                 <strong>格式說明：</strong> 每行一個三角形，格式為 <code>名稱 x1,y1 x2,y2 x3,y3</code><br>
                 例如：<br>
@@ -281,7 +278,6 @@
             <div id="coordStatus" style="margin-top:10px;font-weight:bold;color:#27ae60;"></div>
         </div>
 
-        <!-- 第三區：分類結果 -->
         <div class="panel" id="resultPanel" style="display:none;">
             <h2>分類結果</h2>
             <div id="statsContent" class="stats-box"></div>
@@ -302,54 +298,56 @@
             <button onclick="copyText()" style="margin-top:10px; padding:8px 15px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">複製結果</button>
         </div>
 
-        <!-- 第四區：自動 Canonical Form -->
         <div class="canonical-panel" id="canonicalPanel" style="display:none;">
-            <h2>📐 Canonical Form（自動計算）</h2>
+            <h2>Canonical Form</h2>
             <textarea id="canonicalInputAuto" class="canonical-input" style="display:none;"></textarea>
 
             <div id="canonicalResultPanelAuto">
-                <div class="canonical-result-box">
-                    <div class="label">Canonical Form（字典序最小）</div>
-                    <div class="result" id="canonicalResultAuto"></div>
-                    <div class="detail" id="canonicalDetailAuto"></div>
-                    <div class="pi-info" id="piInfoAuto"></div>
-                </div>
-
-                <!-- 🔥 可畫性檢驗 -->
+                <!-- 🔥 可畫性檢驗（先檢查） -->
                 <div id="realizabilityAuto"></div>
 
-                <div style="margin-top:16px;">
-                    <div class="stat-row">
-                        <span class="stat-label">原始三角形數量</span>
-                        <span class="stat-value" id="statCountAuto"></span>
+                <!-- 🔥 只有在可畫時才顯示以下內容 -->
+                <div id="canonicalDetailsAuto" style="display:none;">
+                    <div class="canonical-result-box" style="margin-top:16px;">
+                        <div class="label">Canonical Form（字典序最小）</div>
+                        <div class="result" id="canonicalResultAuto"></div>
+                        <div class="detail" id="canonicalDetailAuto"></div>
+                        <div class="pi-info" id="piInfoAuto"></div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">窮舉排列數</span>
-                        <span class="stat-value" id="statPermsAuto"></span>
+
+                    <div style="margin-top:16px;">
+                        <div class="stat-row">
+                            <span class="stat-label">原始三角形數量</span>
+                            <span class="stat-value" id="statCountAuto"></span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">窮舉排列數</span>
+                            <span class="stat-value" id="statPermsAuto"></span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">產生相同 Canonical Form 的 π 數量</span>
+                            <span class="stat-value" id="statMinCountAuto"></span>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">產生相同 Canonical Form 的 π 數量</span>
-                        <span class="stat-value" id="statMinCountAuto"></span>
-                    </div>
+
+                    <h3 style="margin-top:20px;">原始集合 vs Canonical 集合</h3>
+                    <table class="canonical-table">
+                        <thead>
+                            <tr>
+                                <th>原始集合</th>
+                                <th>Canonical 集合</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compareTableAuto"></tbody>
+                    </table>
+
+                    <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
+                    <div id="piTableContainerAuto"></div>
+
+                    <h3 style="margin-top:20px;">全部 720 種排列的 Canonical 結果</h3>
+                    <div class="scrollable" id="allPermsContainerAuto"></div>
+                    <div class="perm-count" id="permCountAuto"></div>
                 </div>
-
-                <h3 style="margin-top:20px;">原始集合 vs Canonical 集合</h3>
-                <table class="canonical-table">
-                    <thead>
-                        <tr>
-                            <th>原始集合</th>
-                            <th>Canonical 集合</th>
-                        </tr>
-                    </thead>
-                    <tbody id="compareTableAuto"></tbody>
-                </table>
-
-                <h3 style="margin-top:20px;">一個有效的 π（重新編號）</h3>
-                <div id="piTableContainerAuto"></div>
-
-                <h3 style="margin-top:20px;">全部 720 種排列的 Canonical 結果</h3>
-                <div class="scrollable" id="allPermsContainerAuto"></div>
-                <div class="perm-count" id="permCountAuto"></div>
             </div>
         </div>
 
@@ -358,20 +356,13 @@
     <div class="footer">六線分類工具</div>
 
     <script>
-        // ================================================================
-        //  分頁切換
-        // ================================================================
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-
             document.getElementById('tab-' + tabName).classList.add('active');
             event.target.classList.add('active');
         }
 
-        // ================================================================
-        //  colorMap（中文顏色 → 數字）
-        // ================================================================
         const colorMap = {
             '紅色': 1, '紅': 1,
             '綠色': 2, '綠': 2,
@@ -382,9 +373,6 @@
             '棕色': 1, '棕': 1
         };
 
-        // ================================================================
-        //  ETH 43 型資料庫
-        // ================================================================
         const ETH_DB = {
             '#01': { count: 7, class: 'D2', type18: 'D2', triangles: [[1,2,3],[1,4,6],[1,5,6],[2,3,6],[2,4,5],[2,4,6],[3,4,5]] },
             '#02': { count: 7, class: 'D1', type18: 'D1', triangles: [[1,2,3],[1,4,5],[2,3,5],[2,4,5],[2,4,6],[3,4,6],[3,5,6]] },
@@ -431,16 +419,9 @@
             '#43': { count: 4, class: 'A1', type18: 'A1', triangles: [[1,2,3],[2,3,4],[3,4,5],[4,5,6]] }
         };
 
-        // ================================================================
-        //  全域變數
-        // ================================================================
         let triangles = [];
         let coords = {};
         let ETH_CANONICAL_MAP = null;
-
-        // ================================================================
-        //  通用函數
-        // ================================================================
 
         function sharedEdges(t1, t2) {
             return t1.numbers.filter(e => t2.numbers.includes(e)).length;
@@ -497,9 +478,6 @@
             return result;
         }
 
-        // ================================================================
-        //  🔥 建立 ETH 43 型的 Canonical Form 對照表
-        // ================================================================
         function buildETHCanonicalMap() {
             const map = {};
             const perms = getPermutations([1, 2, 3, 4, 5, 6]);
@@ -522,46 +500,13 @@
             return map;
         }
 
-        // 🔥 可畫性檢驗 HTML 產生器
-        function getRealizabilityHtml(canonicalStr) {
+        // 🔥 只做可畫性檢查（先快速檢查）
+        function quickRealizabilityCheck(triList) {
             if (ETH_CANONICAL_MAP === null) {
                 ETH_CANONICAL_MAP = buildETHCanonicalMap();
             }
             
-            const match = ETH_CANONICAL_MAP[canonicalStr];
-            
-            if (match) {
-                return `
-                    <div class="realizable">
-                        <strong>✅ 可畫性檢驗：可以畫出來</strong><br>
-                        此面三角形集合與 <strong>ETH ${match.ethId}</strong>（${match.class} 型，${match.count} 個面三角形）同構，<br>
-                        存在一組「無平行、無三線共點」的六條直線排列可實現。
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="not-realizable">
-                        <strong>⚠️ 可畫性檢驗：不在 ETH 43 型中</strong><br>
-                        在「無平行、無三線共點」的條件下，可能畫不出來。<br>
-                        請確認：① 輸入是否為完整的全部面三角形？② 圖形中是否有平行線或三線共點？
-                    </div>
-                `;
-            }
-        }
-
-        // ================================================================
-        //  分頁一：Canonical Form 窮舉（獨立）
-        // ================================================================
-
-        function computeCanonical() {
-            const text = document.getElementById('canonicalInput').value;
-            const triList = parseCanonicalInput(text);
-
-            if (triList.length === 0) {
-                alert('請輸入至少一個三角形！\n格式：每組三位數字（1~6），用逗號或頓號分隔。');
-                return;
-            }
-
+            // 計算 Canonical Form
             const perms = getPermutations([1, 2, 3, 4, 5, 6]);
             let minString = null;
             let minTriangles = null;
@@ -586,7 +531,63 @@
 
             allResults.sort((a, b) => a.str.localeCompare(b.str));
 
-            renderCanonicalResult('canonical', triList, minTriangles, minString, minPi, minCount, allResults);
+            const match = ETH_CANONICAL_MAP[minString];
+            
+            return {
+                realizable: !!match,
+                match: match,
+                canonicalStr: minString,
+                canonical: minTriangles,
+                minPi: minPi,
+                minCount: minCount,
+                allResults: allResults
+            };
+        }
+
+        // ================================================================
+        //  分頁一：Canonical Form 窮舉
+        // ================================================================
+
+        function computeCanonical() {
+            const text = document.getElementById('canonicalInput').value;
+            const triList = parseCanonicalInput(text);
+
+            if (triList.length === 0) {
+                alert('請輸入至少一個三角形！\n格式：每組三位數字（1~6），用逗號或頓號分隔。');
+                return;
+            }
+
+            document.getElementById('canonicalResultPanel').style.display = 'block';
+
+            const result = quickRealizabilityCheck(triList);
+            const realizabilityEl = document.getElementById('realizabilityCanonical');
+            const detailsEl = document.getElementById('canonicalDetails');
+
+            if (!result.realizable) {
+                // ❌ 畫不出來 → 顯示警告，不顯示後續內容
+                realizabilityEl.innerHTML = `
+                    <div class="not-realizable">
+                        <strong>可畫性檢驗：畫不出來</strong><br>
+                        此面三角形集合不在 ETH 43 型中。<br>
+                        在「無平行、無三線共點」的條件下，無法畫出這組面三角形。<br>
+                        <br>
+                        <strong>可能原因：</strong>① 輸入不完整（不是全部的面三角形）；② 圖形中有平行線或三線共點。<br>                                               
+                    </div>
+                `;
+                detailsEl.style.display = 'none';
+                return;
+            }
+
+            // ✅ 畫得出來 → 顯示結果
+            realizabilityEl.innerHTML = `
+                <div class="realizable">
+                    <strong>可畫性檢驗：可以畫出來</strong><br>
+                    此面三角形集合與 <strong>ETH ${result.match.ethId}</strong>（${result.match.class} 型，${result.match.count} 個面三角形）同構。
+                </div>
+            `;
+            detailsEl.style.display = 'block';
+
+            renderCanonicalDetails('canonical', triList, result);
         }
 
         function clearCanonical() {
@@ -594,36 +595,29 @@
             document.getElementById('canonicalResultPanel').style.display = 'none';
         }
 
-        function renderCanonicalResult(prefix, original, canonical, canonicalStr, pi, minCount, allResults) {
-            const resultPanel = prefix === 'canonical' ? 'canonicalResultPanel' : 'canonicalResultPanelAuto';
-            document.getElementById(resultPanel).style.display = 'block';
-
+        function renderCanonicalDetails(prefix, original, result) {
             const id = (name) => prefix === 'canonical' ? name : name + 'Auto';
 
-            document.getElementById(id('canonicalResult')).textContent = canonicalStr;
-            document.getElementById(id('canonicalDetail')).textContent = `共 ${canonical.length} 個三角形`;
-            document.getElementById(id('piInfo')).textContent = `π = (${pi.join(', ')})　｜　1→${pi[0]}, 2→${pi[1]}, 3→${pi[2]}, 4→${pi[3]}, 5→${pi[4]}, 6→${pi[5]}`;
-
-            // 🔥 可畫性檢驗
-            const realizabilityEl = document.getElementById(prefix === 'canonical' ? 'realizabilityCanonical' : 'realizabilityAuto');
-            realizabilityEl.innerHTML = getRealizabilityHtml(canonicalStr);
+            document.getElementById(id('canonicalResult')).textContent = result.canonicalStr;
+            document.getElementById(id('canonicalDetail')).textContent = `共 ${result.canonical.length} 個三角形`;
+            document.getElementById(id('piInfo')).textContent = `π = (${result.minPi.join(', ')})`;
 
             document.getElementById(id('statCount')).textContent = `${original.length} 個`;
             document.getElementById(id('statPerms')).textContent = `720 種`;
-            document.getElementById(id('statMinCount')).textContent = `${minCount} 個`;
+            document.getElementById(id('statMinCount')).textContent = `${result.minCount} 個`;
 
             let compareHtml = '';
-            const maxLen = Math.max(original.length, canonical.length);
+            const maxLen = Math.max(original.length, result.canonical.length);
             for (let i = 0; i < maxLen; i++) {
                 const o = original[i] ? original[i].join('') : '';
-                const c = canonical[i] ? canonical[i].join('') : '';
+                const c = result.canonical[i] ? result.canonical[i].join('') : '';
                 compareHtml += `<tr><td>${o}</td><td>${c}</td></tr>`;
             }
             document.getElementById(id('compareTable')).innerHTML = compareHtml;
 
             let piHtml = '<table class="canonical-table"><thead><tr><th>原始</th><th>套用 π</th><th>排序後</th></tr></thead><tbody>';
             for (const t of original) {
-                const mapped = t.map(num => pi[num - 1]);
+                const mapped = t.map(num => result.minPi[num - 1]);
                 const sorted = mapped.slice().sort((a, b) => a - b);
                 piHtml += `<tr><td>${t.join('')}</td><td>${mapped.join('')}</td><td>${sorted.join('')}</td></tr>`;
             }
@@ -631,9 +625,9 @@
             document.getElementById(id('piTableContainer')).innerHTML = piHtml;
 
             let allHtml = '<table class="canonical-table"><thead><tr><th>#</th><th>π</th><th>Canonical</th></tr></thead><tbody>';
-            for (let i = 0; i < allResults.length; i++) {
-                const r = allResults[i];
-                const isMin = r.str === canonicalStr;
+            for (let i = 0; i < result.allResults.length; i++) {
+                const r = result.allResults[i];
+                const isMin = r.str === result.canonicalStr;
                 allHtml += `<tr class="${isMin ? 'min-row' : ''}">
                     <td>${i + 1}</td>
                     <td>(${r.pi.join(',')})</td>
@@ -642,11 +636,11 @@
             }
             allHtml += '</tbody></table>';
             document.getElementById(id('allPermsContainer')).innerHTML = allHtml;
-            document.getElementById(id('permCount')).textContent = `共 ${allResults.length} 筆（綠色標記為 Canonical Form）`;
+            document.getElementById(id('permCount')).textContent = `共 ${result.allResults.length} 筆（綠色標記為 Canonical Form）`;
         }
 
         // ================================================================
-        //  分頁二：綜合工具（18 型分類 + 自動 Canonical Form）
+        //  分頁二：綜合工具
         // ================================================================
 
         function parseAndAdd() {
@@ -707,36 +701,41 @@
             if (triangles.length === 0) return;
             
             const numbers = triangles.map(t => t.numbers.join(''));
-            const text = numbers.join(', ');
-            document.getElementById('canonicalInputAuto').value = text;
+            document.getElementById('canonicalInputAuto').value = numbers.join(', ');
             
             const triList = triangles.map(t => t.numbers);
-            const perms = getPermutations([1, 2, 3, 4, 5, 6]);
-            let minString = null;
-            let minTriangles = null;
-            let minPi = null;
-            let minCount = 0;
-            const allResults = [];
-
-            for (const pi of perms) {
-                const mapped = applyPiToTriangles(triList, pi);
-                const str = setToString(mapped);
-                allResults.push({ pi: pi.slice(), str: str, triangles: mapped });
-
-                if (minString === null || str < minString) {
-                    minString = str;
-                    minTriangles = mapped;
-                    minPi = pi.slice();
-                    minCount = 1;
-                } else if (str === minString) {
-                    minCount++;
-                }
-            }
-
-            allResults.sort((a, b) => a.str.localeCompare(b.str));
 
             document.getElementById('canonicalPanel').style.display = 'block';
-            renderCanonicalResult('auto', triList, minTriangles, minString, minPi, minCount, allResults);
+
+            const result = quickRealizabilityCheck(triList);
+            const realizabilityEl = document.getElementById('realizabilityAuto');
+            const detailsEl = document.getElementById('canonicalDetailsAuto');
+
+            if (!result.realizable) {
+                // ❌ 畫不出來 → 只顯示警告
+                realizabilityEl.innerHTML = `
+                    <div class="not-realizable">
+                        <strong>可畫性檢驗：畫不出來</strong><br>
+                        此面三角形集合不在 ETH 43 型中。<br>
+                        在「無平行、無三線共點」的條件下，無法畫出這組面三角形。<br>
+                        <br>
+                        <strong>可能原因：</strong>① 輸入不完整（不是全部的面三角形）；② 圖形中有平行線或三線共點。<br>                        
+                    </div>
+                `;
+                detailsEl.style.display = 'none';
+                return;
+            }
+
+            // ✅ 畫得出來 → 顯示結果
+            realizabilityEl.innerHTML = `
+                <div class="realizable">
+                    <strong>可畫性檢驗：可以畫出來</strong><br>
+                    此面三角形集合與 <strong>ETH ${result.match.ethId}</strong>（${result.match.class} 型，${result.match.count} 個面三角形）同構。
+                </div>
+            `;
+            detailsEl.style.display = 'block';
+
+            renderCanonicalDetails('auto', triList, result);
         }
 
         function renderList() {
@@ -1206,7 +1205,6 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderList();
-            // 預先建立 ETH Canonical Map
             ETH_CANONICAL_MAP = buildETHCanonicalMap();
         });
     </script>

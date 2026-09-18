@@ -169,7 +169,7 @@
 
     <div class="tabs">
         <button class="tab active" onclick="switchTab('canonical')">Canonical Form</button>
-        <button class="tab" onclick="switchTab('combined')">18型分類 + Canonical From</button>
+        <button class="tab" onclick="switchTab('combined')">18型分類 + Canonical Form</button>
     </div>
 
     <!-- ================================================================ -->
@@ -179,7 +179,7 @@
         <div class="canonical-panel">
             <h2>Canonical Form</h2>
             <div class="format-hint">
-                <strong>格式說明：</strong> 一次輸入所有三角形，用 <strong>逗號</strong>、<strong>頓號</strong> 或 <strong>空格</strong> 分隔。<br>               
+                <strong>格式說明：</strong> 一次輸入所有三角形，用 <strong>逗號</strong>、<strong>頓號</strong> 或 <strong>空格</strong> 分隔。<br>
             </div>
             <textarea id="canonicalInput" class="canonical-input" placeholder="請輸入三角形三邊代碼，用逗號或頓號分隔..."></textarea>
             <div class="btn-group">
@@ -188,16 +188,17 @@
             </div>
 
             <div id="canonicalResultPanel" style="display:none;">
-                <!-- 🔥 可畫性檢驗（先檢查） -->
+                <!-- 可畫性檢驗（先檢查） -->
                 <div id="realizabilityCanonical"></div>
 
-                <!-- 🔥 只有在可畫時才顯示以下內容 -->
+                <!-- 只有在可畫時才顯示以下內容 -->
                 <div id="canonicalDetails" style="display:none;">
                     <div class="canonical-result-box" style="margin-top:16px;">
                         <div class="label">Canonical Form（字典序最小）</div>
                         <div class="result" id="canonicalResult"></div>
                         <div class="detail" id="canonicalDetail"></div>
                         <div class="pi-info" id="piInfo"></div>
+                        <div class="pi-info" id="piMinCount" style="margin-top:8px;color:#c0392b;font-weight:700;"></div>
                     </div>
 
                     <div style="margin-top:16px;">
@@ -302,16 +303,17 @@
             <textarea id="canonicalInputAuto" class="canonical-input" style="display:none;"></textarea>
 
             <div id="canonicalResultPanelAuto">
-                <!-- 🔥 可畫性檢驗（先檢查） -->
+                <!-- 可畫性檢驗（先檢查） -->
                 <div id="realizabilityAuto"></div>
 
-                <!-- 🔥 只有在可畫時才顯示以下內容 -->
+                <!-- 只有在可畫時才顯示以下內容 -->
                 <div id="canonicalDetailsAuto" style="display:none;">
                     <div class="canonical-result-box" style="margin-top:16px;">
                         <div class="label">Canonical Form（字典序最小）</div>
                         <div class="result" id="canonicalResultAuto"></div>
                         <div class="detail" id="canonicalDetailAuto"></div>
                         <div class="pi-info" id="piInfoAuto"></div>
+                        <div class="pi-info" id="piMinCountAuto" style="margin-top:8px;color:#c0392b;font-weight:700;"></div>
                     </div>
 
                     <div style="margin-top:16px;">
@@ -499,13 +501,11 @@
             return map;
         }
 
-        // 🔥 只做可畫性檢查（先快速檢查）
         function quickRealizabilityCheck(triList) {
             if (ETH_CANONICAL_MAP === null) {
                 ETH_CANONICAL_MAP = buildETHCanonicalMap();
             }
             
-            // 計算 Canonical Form
             const perms = getPermutations([1, 2, 3, 4, 5, 6]);
             let minString = null;
             let minTriangles = null;
@@ -563,21 +563,19 @@
             const detailsEl = document.getElementById('canonicalDetails');
 
             if (!result.realizable) {
-                // ❌ 畫不出來 → 顯示警告，不顯示後續內容
                 realizabilityEl.innerHTML = `
                     <div class="not-realizable">
                         <strong>可畫性檢驗：畫不出來</strong><br>
                         此面三角形集合不在 ETH 43 型中。<br>
                         在「無平行、無三線共點」的條件下，無法畫出這組面三角形。<br>
                         <br>
-                        <strong>可能原因：</strong>① 輸入不完整（不是全部的面三角形）；② 圖形中有平行線或三線共點。<br>                                               
+                        <strong>可能原因：</strong>① 輸入不完整（不是全部的面三角形）；② 圖形中有平行線或三線共點。<br>
                     </div>
                 `;
                 detailsEl.style.display = 'none';
                 return;
             }
 
-            // ✅ 畫得出來 → 顯示結果
             realizabilityEl.innerHTML = `
                 <div class="realizable">
                     <strong>可畫性檢驗：可以畫出來</strong><br>
@@ -600,6 +598,9 @@
             document.getElementById(id('canonicalResult')).textContent = result.canonicalStr;
             document.getElementById(id('canonicalDetail')).textContent = `共 ${result.canonical.length} 個三角形`;
             document.getElementById(id('piInfo')).textContent = `π = (${result.minPi.join(', ')})`;
+
+            // 🔥 顯示最小 π 數
+            document.getElementById(id('piMinCount')).textContent = `最小 π 數：${result.minCount} 個（產生相同 Canonical Form 的重新編號數量）`;
 
             document.getElementById(id('statCount')).textContent = `${original.length} 個`;
             document.getElementById(id('statPerms')).textContent = `720 種`;
@@ -711,21 +712,19 @@
             const detailsEl = document.getElementById('canonicalDetailsAuto');
 
             if (!result.realizable) {
-                // ❌ 畫不出來 → 只顯示警告
                 realizabilityEl.innerHTML = `
                     <div class="not-realizable">
                         <strong>可畫性檢驗：畫不出來</strong><br>
                         此面三角形集合不在 ETH 43 型中。<br>
                         在「無平行、無三線共點」的條件下，無法畫出這組面三角形。<br>
                         <br>
-                        <strong>可能原因：</strong>① 輸入不完整（不是全部的面三角形）；② 圖形中有平行線或三線共點。<br>                        
+                        <strong>可能原因：</strong>① 輸入不完整（不是全部的面三角形）；② 圖形中有平行線或三線共點。<br>
                     </div>
                 `;
                 detailsEl.style.display = 'none';
                 return;
             }
 
-            // ✅ 畫得出來 → 顯示結果
             realizabilityEl.innerHTML = `
                 <div class="realizable">
                     <strong>可畫性檢驗：可以畫出來</strong><br>
@@ -1055,9 +1054,9 @@
                     }
 
                     if (s === 1 && sharedVertices < 2) {
-                        results.push(`⚠️ ...：宣稱共用1條邊，但幾何上僅有${sharedVertices}個頂點重合`);
+                        results.push(`⚠️ ${t1.name}與${t2.name}：宣稱共用1條邊，但幾何上僅有${sharedVertices}個頂點重合`);
                     } else if (s === 2 && sharedVertices < 1) {
-                        results.push(`⚠️ ...：宣稱共用2條邊，但幾何上沒有任何頂點重合`);
+                        results.push(`⚠️ ${t1.name}與${t2.name}：宣稱共用2條邊，但幾何上沒有任何頂點重合`);
                     }
                 }
             }
